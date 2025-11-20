@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Farcaster Space Defense (Final Nightmare)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;600&display=swap');
+
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background-color: #010103;
+            color: #e0e0ff;
+            overflow: hidden;
+            touch-action: none;
+            margin: 0; padding: 0;
+            user-select: none; -webkit-user-select: none;
+            cursor: crosshair;
+            transition: background-color 2s, filter 2s;
+        }
+        canvas { display: block; touch-action: none; }
+        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        
+        :root {
+            --theme-color: #00f3ff;
+            --theme-shadow: rgba(0, 243, 255, 0.3);
+        }
+
+        /* HUD */
+        .top-bar {
+            background: rgba(2, 6, 23, 0.9);
+            padding: 10px 25px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--theme-color);
+            box-shadow: 0 0 20px var(--theme-shadow);
+            backdrop-filter: blur(8px);
+            font-family: 'Orbitron', sans-serif;
+            transition: all 1s;
+        }
+        .stat-box { display: flex; flex-direction: column; align-items: center; }
+        .stat-label { font-size: 10px; color: var(--theme-color); letter-spacing: 2px; text-transform: uppercase; transition: color 1s; }
+        .stat-value { font-size: 20px; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--theme-color); transition: text-shadow 1s; }
+
+        /* Kule Paneli */
+        .bottom-panel {
+            position: absolute; bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(2, 6, 23, 0.95);
+            padding: 12px 25px;
+            border-radius: 24px;
+            display: flex; gap: 15px; pointer-events: auto;
+            border: 1px solid var(--theme-color);
+            box-shadow: 0 0 30px var(--theme-shadow);
+            backdrop-filter: blur(12px);
+            z-index: 50;
+            transition: all 1s;
+        }
+        
+        .tower-card {
+            width: 80px; height: 110px;
+            background: linear-gradient(180deg, #0f172a, #020617);
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .tower-card:hover { border-color: var(--theme-color); transform: translateY(-2px); }
+        .tower-card.selected {
+            border-color: #00ff9d;
+            background: linear-gradient(180deg, #064e3b, #020617);
+            box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
+            transform: translateY(-10px);
+        }
+        
+        .icon-stack { position: relative; width: 50px; height: 50px; margin-bottom: 8px; }
+        .icon-stack img {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: contain; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
+        }
+        .tower-name { font-size: 9px; color: #94a3b8; font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+        .tower-cost { font-size: 12px; color: #fbbf24; font-weight: bold; }
+
+        /* Bildirimler */
+        .notification {
+            position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
+            font-family: 'Orbitron', sans-serif; color: #ffd700; font-size: 1.5rem;
+            text-shadow: 0 0 10px orange; pointer-events: none;
+            opacity: 0; transition: opacity 0.5s; z-index: 60;
+        }
+
+        /* Dalga Uyarıları */
+        .wave-warning {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+            font-family: 'Orbitron', sans-serif; text-align: center; pointer-events: none;
+            opacity: 0; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 100;
+            background: rgba(0,0,0,0.8); padding: 30px 60px; border: 3px solid var(--theme-color);
+            box-shadow: 0 0 80px var(--theme-shadow); border-radius: 10px;
+        }
+        .wave-warning.active { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .warning-title { font-size: 3.5rem; font-weight: 900; color: var(--theme-color); text-shadow: 0 0 30px var(--theme-color); margin-bottom: 10px; }
+        .warning-sub { font-size: 1.5rem; color: #fff; letter-spacing: 5px; text-transform: uppercase; }
+
+        /* Overlay */
+        .overlay-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(1, 1, 5, 0.95); backdrop-filter: blur(15px);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            pointer-events: auto; z-index: 100; text-align: center;
+        }
+        .space-btn {
+            background: linear-gradient(90deg, var(--theme-color), #0066ff);
+            color: #fff; border: none;
+            padding: 16px 50px; font-size: 20px; font-family: 'Orbitron', sans-serif; font-weight: 900;
+            cursor: pointer; margin-top: 30px; clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            box-shadow: 0 0 30px var(--theme-shadow);
+            text-transform: uppercase; letter-spacing: 2px; transition: all 0.2s;
+        }
+        .space-btn:hover { background: #fff; color: #000; box-shadow: 0 0 50px var(--theme-color); }
+
+        #loading {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: #00f3ff; font-family: 'Orbitron', sans-serif; font-size: 24px;
+            text-shadow: 0 0 20px #00f3ff; animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse { from { opacity: 0.6; } to { opacity: 1; } }
+        
+        /* Atmosfer Efektleri */
+        .danger-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 10; opacity: 0; transition: opacity 2s;
+        }
+        .bg-red { background: radial-gradient(circle, transparent 40%, rgba(255, 0, 0, 0.3) 100%); }
+        .bg-toxic { 
+            background: radial-gradient(circle, transparent 30%, rgba(0, 255, 0, 0.2) 90%);
+            animation: toxic-pulse 2s infinite;
+        }
+        @keyframes toxic-pulse {
+            0% { box-shadow: inset 0 0 20px #0f0; }
+            50% { box-shadow: inset 0 0 100px #0f0; }
+            100% { box-shadow: inset 0 0 20px #0f0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading">SİSTEM YÜKLENİYOR...</div>
+    
+    <div class="danger-bg bg-red" id="bgRed"></div>
+    <div class="danger-bg bg-toxic" id="bgToxic"></div>
+    
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="bonusNotif" class="notification">+25 ENERJİ!</div>
+    
+    <!-- Uyarı Kutusu -->
+    <div id="waveWarning" class="wave-warning">
+        <div class="warning-title" id="warnTitle">DALGA 1</div>
+        <div class="warning-sub" id="warnSub">DÜŞMANLAR YAKLAŞIYOR</div>
+    </div>
+
+    <div class="ui-layer" id="uiLayer">
+        <div class="top-bar">
+            <div class="stat-box">
+                <span class="stat-label">KALKAN</span>
+                <span class="stat-value" id="lives" style="color: #ef4444;">100%</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">DALGA</span>
+                <span class="stat-value" id="wave">1</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">ENERJİ</span>
+                <span class="stat-value" id="gold" style="color: #fbbf24;">150</span>
+            </div>
+        </div>
+
+        <div class="bottom-panel">
+            <div class="tower-card selected" onclick="selectTower('archer')" id="btn-archer">
+                <div class="icon-stack">
+                    <img id="img-archer-base" src="" alt="Base">
+                    <img id="img-archer-top" src="" alt="Top">
+                </div>
+                <span class="tower-name">Plazma</span>
+                <span class="tower-cost">100</span>
+            </div>
+            <div class="tower-card" onclick="selectTower('cannon')" id="btn-cannon">
+                <div class="icon-stack">
+                    <img id="img-cannon-base" src="" alt="Base">
+                    <img id="img-cannon-top" src="" alt="Top">
+                </div>
+                <span class="tower-name">Füze</span>
+                <span class="tower-cost">200</span>
+            </div>
+            <div class="tower-card" onclick="selectTower('sniper')" id="btn-sniper">
+                <div class="icon-stack">
+                    <img id="img-sniper-base" src="" alt="Base">
+                    <img id="img-sniper-top" src="" alt="Top">
+                </div>
+                <span class="tower-name">İyon</span>
+                <span class="tower-cost">300</span>
+            </div>
+             <div class="tower-card" onclick="selectTower('magic')" id="btn-magic">
+                <div class="icon-stack">
+                    <img id="img-magic-base" src="" alt="Base">
+                    <img id="img-magic-top" src="" alt="Top">
+                </div>
+                <span class="tower-name">Prizma</span>
+                <span class="tower-cost">450</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="startScreen" class="overlay-screen" style="display:none;">
+        <h1 style="font-family: 'Orbitron', sans-serif; font-size: 4rem; background: linear-gradient(to right, #00f3ff, #0066ff); -webkit-background-clip: text; color: transparent; margin-bottom: 10px; text-shadow: 0 0 40px rgba(0, 243, 255, 0.3);">UZAY SAVUNMASI</h1>
+        <p style="color: #94a3b8; font-size: 1.2rem; margin-bottom: 30px;">Zorluk Seviyesi: NIGHTMARE</p>
+        <button class="space-btn" onclick="initGame()">BAŞLAT</button>
+    </div>
+
+    <div id="gameOverScreen" class="overlay-screen hidden" style="display: none;">
+        <h1 style="font-family: 'Orbitron', sans-serif; font-size: 5rem; color: #ef4444; text-shadow: 0 0 50px rgba(239, 68, 68, 0.6);">ÜS YOK EDİLDİ</h1>
+        <p style="color: #fff; font-size: 1.5rem; margin-top: 20px;">Dayanılan Dalga: <span id="finalWave" style="color: #fbbf24;">0</span></p>
+        <button class="space-btn" onclick="resetGame()">TEKRAR DENE</button>
+    </div>
+
+    <script>
+        const REPO = 'https://raw.githubusercontent.com/thecompetent/tower-defense-oyunum-farcaster/main/';
+
+        const ASSET_URLS = {
+            base: REPO + 'detail-crystal-large.png', 
+            rock: REPO + 'detail-rocks.png',
+            bonus: REPO + 'detail-crystal.png',
+            archer_base: REPO + 'tower-square-build-f.png', 
+            archer_top: REPO + 'enemy-ufo-a-weapon.png', 
+            cannon_base: REPO + 'tower-round-build-f.png', 
+            cannon_top: REPO + 'enemy-ufo-b-weapon.png', 
+            sniper_base: REPO + 'tower-square-build-d.png', 
+            sniper_top: REPO + 'enemy-ufo-c-weapon.png', 
+            magic_base: '', 
+            magic_top: REPO + 'tower-round-crystals.png', 
+            ufo_normal: REPO + 'enemy-ufo-b.png',
+            ufo_fast: REPO + 'enemy-ufo-c.png', 
+            ufo_boss: REPO + 'enemy-ufo-c.png', 
+            beam: REPO + 'enemy-ufo-beam.png'
+        };
+
+        const assets = {
+            env: { base: ASSET_URLS.base, rock: ASSET_URLS.rock, bonus: ASSET_URLS.bonus },
+            towers: { 
+                archer: { base: ASSET_URLS.archer_base, top: ASSET_URLS.archer_top },
+                cannon: { base: ASSET_URLS.cannon_base, top: ASSET_URLS.cannon_top },
+                sniper: { base: ASSET_URLS.sniper_base, top: ASSET_URLS.sniper_top },
+                magic:  { base: ASSET_URLS.magic_base, top: ASSET_URLS.magic_top }
+            },
+            enemies: { normal: ASSET_URLS.ufo_normal, fast: ASSET_URLS.ufo_fast, boss: ASSET_URLS.ufo_boss },
+            effects: { beam: ASSET_URLS.beam }
+        };
+
+        const updateBtn = (type) => {
+            const b = document.getElementById(`img-${type}-base`);
+            const t = document.getElementById(`img-${type}-top`);
+            if(b) { if(assets.towers[type].base) b.src = assets.towers[type].base; else b.style.display = 'none'; }
+            if(t) t.src = assets.towers[type].top;
+        };
+        
+        window.onload = function() {
+            ['archer', 'cannon', 'sniper', 'magic'].forEach(t => updateBtn(t));
+            loadImages();
+        };
+
+        const images = {};
+        let assetsLoaded = 0;
+        let totalAssets = 0;
+
+        function loadImages() {
+            const keys = [];
+            if(assets.env.base) keys.push({k:'base', u:assets.env.base});
+            if(assets.env.rock) keys.push({k:'rock', u:assets.env.rock});
+            if(assets.env.bonus) keys.push({k:'bonus', u:assets.env.bonus});
+            if(assets.enemies.normal) keys.push({k:'ufo_n', u:assets.enemies.normal});
+            if(assets.enemies.fast) keys.push({k:'ufo_f', u:assets.enemies.fast});
+            if(assets.enemies.boss) keys.push({k:'ufo_b', u:assets.enemies.boss});
+            if(assets.effects.beam) keys.push({k:'beam', u:assets.effects.beam});
+            
+            ['archer', 'cannon', 'sniper', 'magic'].forEach(t => {
+                if(assets.towers[t].base) keys.push({k:t+'_b', u:assets.towers[t].base});
+                if(assets.towers[t].top) keys.push({k:t+'_t', u:assets.towers[t].top});
+            });
+
+            totalAssets = keys.length;
+            keys.forEach(o => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.onload = () => { images[o.k] = img; check(); };
+                img.onerror = () => { console.log('Err:', o.u); images[o.k] = null; check(); };
+                img.src = o.u;
+            });
+            setTimeout(() => { if(document.getElementById('loading').style.display!=='none') startGameUI(); }, 2000);
+        }
+
+        function check() { assetsLoaded++; if(assetsLoaded >= totalAssets) startGameUI(); }
+        function startGameUI() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex';
+        }
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let gameState = 'menu';
+        let gold = 150;
+        let lives = 20;
+        let wave = 1;
+        const TILE_SIZE = 128; 
+        
+        let gridW, gridH;
+        let pathPoints = [];
+        let basePos = {x:0, y:0};
+        let stars = []; 
+        let decorations = []; 
+        let mousePos = {x: -100, y: -100};
+
+        const TOWERS = {
+            archer: { range: 250, damage: 30, cooldown: 35, cost: 100, type: 'plasma' }, 
+            cannon: { range: 200, damage: 70, cooldown: 70, cost: 200, type: 'missile' },
+            sniper: { range: 400, damage: 200, cooldown: 100, cost: 300, type: 'sniper' },
+            magic:  { range: 300, damage: 2, cooldown: 4, cost: 450, type: 'laser' }
+        };
+        
+        let selectedType = 'archer';
+        let towers = [];
+        let enemies = [];
+        let projectiles = [];
+        let particles = [];
+        let meteors = []; 
+        let bonuses = []; 
+        let toSpawn = 0;
+        let spawnTimer = 0;
+        let spawnRate = 60;
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initMap();
+            initStars();
+        }
+        window.addEventListener('resize', resize);
+
+        function initStars() {
+            stars = [];
+            for(let i=0; i<70; i++) { 
+                stars.push({
+                    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 1, blink: Math.random() * 0.05
+                });
+            }
+        }
+
+        function initMap() {
+            gridW = Math.ceil(canvas.width / TILE_SIZE);
+            gridH = Math.ceil(canvas.height / TILE_SIZE);
+            
+            pathPoints = [];
+            const midY = canvas.height / 2;
+            
+            pathPoints.push({x: 0, y: midY - 120});
+            pathPoints.push({x: canvas.width * 0.25, y: midY - 120});
+            pathPoints.push({x: canvas.width * 0.25, y: midY + 120});
+            pathPoints.push({x: canvas.width * 0.65, y: midY + 120});
+            pathPoints.push({x: canvas.width * 0.65, y: midY - 80});
+            pathPoints.push({x: canvas.width, y: midY - 80});
+
+            basePos = { x: canvas.width - 90, y: midY - 80 };
+
+            decorations = [];
+            for(let i=0; i<12; i++) { 
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                let safe = true;
+                if(Math.hypot(x - basePos.x, y - basePos.y) < 200) safe = false;
+                for(let j=0; j<pathPoints.length-1; j++) {
+                    if(distToSegment({x,y}, pathPoints[j], pathPoints[j+1]) < 120) safe = false;
+                }
+                if(safe) decorations.push({x, y, s: 0.7 + Math.random()*0.6, type: Math.random()>0.4 ? 'rock':'crater'});
+            }
+        }
+
+        // --- DİNAMİK ZORLUK & TEMA YÖNETİMİ ---
+        function updateTheme() {
+            const root = document.documentElement;
+            const bgRed = document.getElementById('bgRed');
+            const bgToxic = document.getElementById('bgToxic');
+            
+            let color = '#00f3ff'; 
+            let shadow = 'rgba(0, 243, 255, 0.2)';
+            let title = "DALGA " + wave;
+            let sub = "HAZIR OL";
+            
+            bgRed.style.opacity = 0;
+            bgToxic.style.opacity = 0;
+
+            if (wave >= 15) {
+                // RADYOAKTİF / TOXIC (Yeşil/Mor)
+                color = '#00ff00';
+                shadow = 'rgba(0, 255, 0, 0.8)';
+                bgToxic.style.opacity = 1; 
+                if(wave === 15) { title = "RADYOAKTİF ALARM"; sub = "ZORLUK %400"; }
+            } else if (wave >= 10) {
+                // HARDCORE (Kırmızı)
+                color = '#ff0000';
+                shadow = 'rgba(255, 0, 0, 0.6)';
+                bgRed.style.opacity = 1;
+                if(wave === 10) { title = "HARDCORE MOD"; sub = "ZORLUK %200"; }
+            } else if (wave >= 5) {
+                // TEHLİKE (Turuncu)
+                color = '#ff9900';
+                shadow = 'rgba(255, 153, 0, 0.4)';
+                bgRed.style.opacity = 0.3;
+                if(wave === 5) { title = "MOD: ZOR"; sub = "ZORLUK %50 ARTTI"; }
+            }
+
+            root.style.setProperty('--theme-color', color);
+            root.style.setProperty('--theme-shadow', shadow);
+            
+            showWaveWarning(title, sub);
+            
+            const btn = document.querySelector('.space-btn');
+            if(btn) {
+                if(wave >= 15) btn.style.background = 'linear-gradient(90deg, #00ff00, #cc00ff)';
+                else if(wave >= 10) btn.style.background = 'linear-gradient(90deg, #ff0000, #800000)';
+                else if(wave >= 5) btn.style.background = 'linear-gradient(90deg, #ff9900, #cc6600)';
+                else btn.style.background = 'linear-gradient(90deg, #00f3ff, #0066ff)';
+            }
+        }
+
+        function showWaveWarning(title, sub) {
+            const el = document.getElementById('waveWarning');
+            const t = el.querySelector('.warning-title');
+            const s = el.querySelector('.warning-sub');
+            t.innerText = title; 
+            s.innerText = sub;
+            
+            // Ara dalgalarda sadece "DALGA X" yazsın, büyük uyarı vermesin
+            if(wave !== 1 && wave !== 5 && wave !== 10 && wave !== 15 && wave < 15) {
+                 t.style.fontSize = "2rem";
+                 s.style.display = "none";
+            } else {
+                 t.style.fontSize = "3.5rem";
+                 s.style.display = "block";
+            }
+            
+            if(wave >= 15) t.style.color = '#00ff00';
+            else if(wave >= 10) t.style.color = '#ff0000';
+            else if(wave >= 5) t.style.color = '#ff9900';
+            else t.style.color = '#00f3ff';
+
+            el.classList.add('active');
+            setTimeout(() => {
+                el.classList.remove('active');
+            }, 3000);
+        }
+
+        class Enemy {
+            constructor(wave) {
+                this.pathIdx = 0;
+                this.x = pathPoints[0].x;
+                this.y = pathPoints[0].y;
+                this.targetIdx = 1;
+                
+                const rand = Math.random();
+                const isBoss = (wave % 5 === 0 && rand < 0.2); 
+                const isFast = (rand < 0.35 + (wave*0.02));
+                
+                // --- ZORLUK ÇARPANLARI (EXTREME) ---
+                let multiplier = 1.0;
+                if (wave >= 5) multiplier = 1.5; // %50
+                if (wave >= 10) multiplier = 3.0; // %200
+                if (wave >= 15) multiplier = 6.0; // %500 (Daha da zor)
+
+                // Başlangıç HP
+                let baseHp = 80 + (wave * 15); 
+
+                if (isBoss) {
+                    this.type = 'boss';
+                    this.hp = (baseHp * 12) * multiplier; // Boss çok daha tank
+                    this.speed = 0.8;
+                    this.imgKey = 'ufo_b';
+                } else if (isFast) {
+                    this.type = 'fast';
+                    this.hp = (baseHp * 0.6) * multiplier;
+                    this.speed = (4.0 + (wave * 0.1)) * (multiplier > 1 ? 1.3 : 1);
+                    this.imgKey = 'ufo_f';
+                } else {
+                    this.type = 'normal';
+                    this.hp = baseHp * multiplier;
+                    this.speed = (1.5 + (wave * 0.05)) * (multiplier > 1 ? 1.2 : 1);
+                    this.imgKey = 'ufo_n';
+                }
+                
+                this.maxHp = this.hp;
+                this.angle = 0;
+                this.floatY = Math.random() * 100;
+            }
+            update() {
+                const target = pathPoints[this.targetIdx];
+                if(!target) return true; 
+                const dx = target.x - this.x;
+                const dy = target.y - this.y;
+                const dist = Math.hypot(dx, dy);
+                if(dist < this.speed) {
+                    this.x = target.x; this.y = target.y;
+                    this.targetIdx++;
+                    if(this.targetIdx >= pathPoints.length) return true;
+                } else {
+                    this.x += (dx/dist) * this.speed;
+                    this.y += (dy/dist) * this.speed;
+                }
+                return false;
+            }
+            draw() {
+                ctx.save();
+                const bob = Math.sin((Date.now()/300) + this.floatY) * 8;
+                ctx.translate(this.x, this.y + bob);
+                
+                let shadowCol = '#0ff';
+                if(this.type === 'fast') shadowCol = '#d0f';
+                if(this.type === 'boss') shadowCol = '#f00';
+                if(wave >= 15) shadowCol = '#0f0';
+
+                ctx.shadowBlur = 20; ctx.shadowColor = shadowCol;
+                
+                const img = images[this.imgKey];
+                if(img) {
+                    let size = 80;
+                    if(this.type === 'boss') size = 160; 
+                    ctx.drawImage(img, -size/2, -size/2, size, size);
+                    if(this.type === 'boss' || wave >= 15) {
+                         ctx.globalCompositeOperation = 'source-atop';
+                         ctx.fillStyle = wave >= 15 ? 'rgba(0,255,0,0.4)' : 'rgba(255,0,0,0.4)'; 
+                         ctx.fillRect(-size/2, -size/2, size, size);
+                         ctx.globalCompositeOperation = 'source-over';
+                    }
+                } else {
+                    ctx.fillStyle = shadowCol;
+                    ctx.beginPath(); ctx.arc(0,0,30,0,Math.PI*2); ctx.fill();
+                }
+                ctx.restore();
+                
+                const pct = Math.max(0, this.hp / this.maxHp);
+                ctx.fillStyle = '#333'; ctx.fillRect(this.x - 30, this.y - 60 + bob, 60, 6);
+                ctx.fillStyle = shadowCol; ctx.fillRect(this.x - 30, this.y - 60 + bob, 60 * pct, 6);
+            }
+        }
+
+        class Bonus {
+            constructor() {
+                this.x = Math.random() * (canvas.width - 100) + 50;
+                this.y = Math.random() * (canvas.height - 100) + 50;
+                this.timer = 300; 
+                this.scale = 0;
+            }
+            update() {
+                if(this.scale < 1) this.scale += 0.1;
+                this.timer--;
+                return this.timer <= 0;
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.scale(this.scale, this.scale);
+                ctx.shadowBlur = 15; ctx.shadowColor = '#ffd700';
+                const bounce = Math.sin(Date.now() / 200) * 5;
+                const img = images['bonus'];
+                if(img) {
+                    ctx.drawImage(img, -25, -25 + bounce, 50, 50);
+                } else {
+                    ctx.fillStyle = 'gold'; ctx.beginPath(); ctx.arc(0, bounce, 15, 0, Math.PI*2); ctx.fill();
+                }
+                ctx.shadowBlur = 0;
+                ctx.font = "10px Orbitron"; ctx.fillStyle = "#fff"; ctx.textAlign = "center";
+                ctx.fillText("TOPLA", 0, 35 + bounce);
+                ctx.restore();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y; this.color = color;
+                this.vx = (Math.random()-0.5) * 6; this.vy = (Math.random()-0.5) * 6;
+                this.life = 1.0;
+            }
+            update() { this.x += this.vx; this.y += this.vy; this.life -= 0.04; return this.life <= 0; }
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI*2); ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        class Meteor {
+            constructor() {
+                this.x = Math.random() * canvas.width; this.y = -100;
+                this.tx = Math.random() * canvas.width; this.ty = Math.random() * canvas.height;
+                const angle = Math.atan2(this.ty - this.y, this.tx - this.x);
+                this.vx = Math.cos(angle) * 18; this.vy = Math.sin(angle) * 18;
+                this.active = true;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                if(this.y > this.ty) {
+                    this.active = false;
+                    enemies.forEach(e => {
+                        if(Math.hypot(e.x - this.x, e.y - this.y) < 180) {
+                            e.hp -= 100;
+                            if(e.hp <= 0 && !e.dead) { e.dead = true; gold += 15; }
+                        }
+                    });
+                    for(let i=0; i<30; i++) particles.push(new Particle(this.x, this.y, '#ffaa00'));
+                }
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(Math.atan2(this.vy, this.vx) - Math.PI/2);
+                const grad = ctx.createLinearGradient(0, 0, 0, -100);
+                grad.addColorStop(0, '#fff'); grad.addColorStop(0.4, '#ff5500'); grad.addColorStop(1, 'transparent');
+                ctx.fillStyle = grad;
+                ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(10, -100); ctx.lineTo(-10, -100); ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class Tower {
+            constructor(x, y, type) {
+                this.x = x; this.y = y;
+                this.type = type;
+                this.stats = TOWERS[type];
+                this.timer = 0;
+                this.angle = 0;
+            }
+            update() {
+                this.timer++;
+                let target = null;
+                let minD = this.stats.range;
+                for(const e of enemies) {
+                    const d = Math.hypot(e.x - this.x, e.y - this.y);
+                    if(d < minD) { minD = d; target = e; }
+                }
+                if(target) {
+                    this.angle = Math.atan2(target.y - this.y, target.x - this.x);
+                    if(this.timer >= this.stats.cooldown) {
+                        this.shoot(target);
+                        this.timer = 0;
+                    }
+                }
+            }
+            shoot(target) {
+                projectiles.push({
+                    x: this.x, y: this.y,
+                    tx: target.x, ty: target.y,
+                    target: target,
+                    type: this.stats.type,
+                    speed: this.stats.type === 'missile' ? 10 : (this.stats.type === 'sniper' ? 30 : 20),
+                    damage: this.stats.damage,
+                    life: 0
+                });
+            }
+            draw() {
+                const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
+                ctx.shadowBlur = 25; ctx.shadowColor = themeColor;
+                ctx.fillStyle = 'rgba(10, 15, 30, 0.9)';
+                ctx.beginPath(); ctx.arc(this.x, this.y, 45, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = themeColor; 
+                ctx.lineWidth = 2; ctx.stroke();
+                ctx.shadowBlur = 0;
+                
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                const baseImg = images[this.type + '_b'];
+                const topImg = images[this.type + '_t'];
+                
+                if(baseImg) { const s = 110; ctx.drawImage(baseImg, -s/2, -s/2, s, s); }
+                if(topImg) {
+                    if(this.type !== 'magic') ctx.rotate(this.angle + Math.PI/2);
+                    const s = 100; ctx.drawImage(topImg, -s/2, -s/2, s, s);
+                }
+                ctx.restore();
+            }
+        }
+
+        function initGame() { resize(); document.getElementById('startScreen').style.display = 'none'; document.getElementById('gameOverScreen').style.display = 'none'; resetVars(); gameState = 'playing'; loop(); }
+        function resetVars() { gold = 200; lives = 20; wave = 1; towers = []; enemies = []; projectiles = []; particles = []; meteors = []; bonuses = []; startWave(); }
+        function resetGame() { initGame(); }
+        function startWave() { 
+            // Düşman sayısını artırdık
+            toSpawn = 10 + Math.floor(wave * 2.5); 
+            // Saldırı hızı
+            spawnRate = Math.max(15, 55 - wave*2);
+            updateTheme(); 
+        }
+
+        function loop() {
+            if(gameState !== 'playing') return;
+            
+            if(toSpawn > 0) {
+                spawnTimer++;
+                if(spawnTimer > spawnRate) {
+                    enemies.push(new Enemy(wave)); toSpawn--; spawnTimer = 0;
+                }
+            } else if(enemies.length === 0) {
+                wave++; gold += 80; startWave(); // Dalga sonu az ödül
+            }
+            
+            if(Math.random() < 0.004 * wave) meteors.push(new Meteor());
+            if(Math.random() < 0.003 && bonuses.length < 2) bonuses.push(new Bonus());
+
+            for(let i=enemies.length-1; i>=0; i--) {
+                if(enemies[i].update()) {
+                    lives--; enemies.splice(i,1);
+                    if(lives <= 0) {
+                        gameState = 'gameover';
+                        document.getElementById('finalWave').innerText = wave;
+                        document.getElementById('gameOverScreen').style.display = 'flex';
+                    }
+                }
+            }
+            
+            towers.forEach(t => t.update());
+            for(let i=bonuses.length-1; i>=0; i--) if(bonuses[i].update()) bonuses.splice(i, 1);
+            
+            for(let i=projectiles.length-1; i>=0; i--) {
+                const p = projectiles[i];
+                if(p.type === 'laser' || p.type === 'sniper') {
+                    if(p.target && enemies.includes(p.target)) {
+                         p.target.hp -= p.damage;
+                         const col = p.type === 'sniper' ? '#0f0' : '#d0f';
+                         particles.push(new Particle(p.target.x, p.target.y, col));
+                         if(p.target.hp <= 0 && !p.target.dead) {
+                             p.target.dead = true; 
+                             gold += (p.target.type==='boss'? 80 : (p.target.type==='fast'? 15 : 12));
+                             enemies = enemies.filter(e => e !== p.target);
+                             for(let k=0; k<8; k++) particles.push(new Particle(p.target.x, p.target.y, col));
+                         }
+                    }
+                    p.life++;
+                    if(p.life > (p.type === 'sniper' ? 2 : 4)) projectiles.splice(i, 1);
+                } else {
+                    const dx = p.tx - p.x; const dy = p.ty - p.y;
+                    const dist = Math.hypot(dx, dy);
+                    if(dist < p.speed) {
+                         enemies.forEach(e => {
+                             if(Math.hypot(e.x - p.x, e.y - p.y) < 70) {
+                                 e.hp -= p.damage;
+                                 particles.push(new Particle(e.x, e.y, p.type === 'missile' ? '#f00' : '#0ff'));
+                                 if(e.hp <= 0 && !e.dead) {
+                                     e.dead = true; 
+                                     gold += (e.type==='boss'? 80 : (e.type==='fast'? 15 : 12));
+                                     for(let k=0; k<10; k++) particles.push(new Particle(e.x, e.y, '#fff'));
+                                 }
+                             }
+                         });
+                         enemies = enemies.filter(e => !e.dead);
+                         projectiles.splice(i, 1);
+                    } else {
+                        p.x += (dx/dist) * p.speed;
+                        p.y += (dy/dist) * p.speed;
+                    }
+                }
+            }
+
+            meteors.forEach((m, i) => { m.update(); if(!m.active) meteors.splice(i, 1); });
+            for(let i=particles.length-1; i>=0; i--) { if(particles[i].update()) particles.splice(i, 1); }
+
+            draw();
+            drawUI();
+            updateUI();
+            requestAnimationFrame(loop);
+        }
+
+        function checkPlacement(x, y) {
+            if(gold < TOWERS[selectedType].cost) return false;
+            if(Math.hypot(basePos.x - x, basePos.y - y) < 150) return false;
+            for(const t of towers) if(Math.hypot(t.x - x, t.y - y) < 100) return false;
+            for(let i=0; i<pathPoints.length-1; i++) {
+                if(distToSegment({x,y}, pathPoints[i], pathPoints[i+1]) < 90) return false;
+            }
+            return true;
+        }
+
+        function drawUI() {
+            if(gameState === 'playing' && mousePos.x > 0) {
+                const isValid = checkPlacement(mousePos.x, mousePos.y);
+                const range = TOWERS[selectedType].range;
+                const theme = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
+                
+                ctx.save(); ctx.translate(mousePos.x, mousePos.y);
+                ctx.beginPath(); ctx.arc(0, 0, range, 0, Math.PI*2);
+                ctx.fillStyle = isValid ? 'rgba(0, 255, 136, 0.05)' : 'rgba(255, 0, 0, 0.05)'; ctx.fill();
+                ctx.strokeStyle = isValid ? theme : 'rgba(255, 0, 0, 0.6)';
+                ctx.lineWidth = 2; ctx.setLineDash([8, 6]); ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#010103'; ctx.fillRect(0,0,canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#fff';
+            stars.forEach(s => {
+                ctx.globalAlpha = 0.3 + Math.sin(Date.now() * s.blink) * 0.5;
+                ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+
+            const rockImg = images['rock'];
+            decorations.forEach(d => {
+                if(d.type === 'rock' && rockImg) {
+                     const s = 90 * d.s; ctx.drawImage(rockImg, d.x - s/2, d.y - s/2, s, s);
+                } else {
+                     ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.ellipse(d.x, d.y, 40*d.s, 25*d.s, 0, 0, Math.PI*2); ctx.fill();
+                }
+            });
+            
+            let pathColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
+            
+            ctx.shadowBlur = 30; ctx.shadowColor = pathColor;
+            ctx.beginPath(); ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
+            for(let i=1; i<pathPoints.length; i++) ctx.lineTo(pathPoints[i].x, pathPoints[i].y);
+            ctx.lineWidth = 80; ctx.strokeStyle = 'rgba(2, 10, 30, 0.8)'; ctx.stroke();
+            ctx.lineWidth = 12; ctx.strokeStyle = pathColor; ctx.setLineDash([30, 20]); ctx.lineDashOffset = -Date.now() / 8; ctx.stroke();
+            ctx.setLineDash([]); ctx.shadowBlur = 0;
+
+            bonuses.forEach(b => b.draw());
+
+            const baseImg = images['base'];
+            if(baseImg) {
+                const s = 200; ctx.shadowBlur = 50; ctx.shadowColor = pathColor;
+                ctx.drawImage(baseImg, basePos.x - s/2, basePos.y - s/2, s, s); ctx.shadowBlur = 0;
+            } else {
+                ctx.fillStyle = pathColor; ctx.beginPath(); ctx.arc(basePos.x, basePos.y, 50, 0, Math.PI*2); ctx.fill();
+            }
+
+            towers.forEach(t => t.draw());
+            enemies.forEach(e => e.draw());
+            meteors.forEach(m => m.draw());
+            
+            projectiles.forEach(p => {
+                if(p.type === 'laser' || p.type === 'sniper') {
+                    ctx.save();
+                    const angle = Math.atan2(p.target.y - p.y, p.target.x - p.x);
+                    const dist = Math.hypot(p.target.x - p.x, p.target.y - p.y);
+                    ctx.translate(p.x, p.y); ctx.rotate(angle + Math.PI/2);
+                    const beamImg = images['beam'];
+                    if(beamImg && p.type !== 'sniper') { ctx.drawImage(beamImg, -30, 0, 60, -dist); } 
+                    else { 
+                        ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0, -dist); 
+                        ctx.lineWidth = p.type === 'sniper' ? 2 : 8; 
+                        ctx.strokeStyle = p.type === 'sniper' ? '#0f0' : pathColor; 
+                        ctx.shadowBlur = 20; ctx.shadowColor = ctx.strokeStyle; ctx.stroke(); 
+                    }
+                    ctx.restore();
+                } else {
+                    ctx.fillStyle = p.type === 'missile' ? '#ff4444' : pathColor;
+                    ctx.shadowBlur = 20; ctx.shadowColor = ctx.fillStyle;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 10, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+                }
+            });
+            particles.forEach(p => p.draw());
+        }
+
+        function updateUI() {
+            document.getElementById('lives').innerText = (lives * 5) + '%';
+            document.getElementById('gold').innerText = Math.floor(gold);
+            document.getElementById('wave').innerText = wave;
+            const check = (id, cost) => {
+                const el = document.getElementById('btn-'+id);
+                if(gold >= cost) { el.style.opacity = 1; el.style.filter = 'grayscale(0)'; }
+                else { el.style.opacity = 0.5; el.style.filter = 'grayscale(1)'; }
+            };
+            check('archer', TOWERS.archer.cost); check('cannon', TOWERS.cannon.cost); check('magic', TOWERS.magic.cost); check('sniper', TOWERS.sniper.cost);
+        }
+
+        function selectTower(type) {
+            selectedType = type;
+            document.querySelectorAll('.tower-card').forEach(e => e.classList.remove('selected'));
+            document.getElementById('btn-'+type).classList.add('selected');
+        }
+
+        function distToSegment(p, v, w) {
+            const l2 = (v.x - w.x)**2 + (v.y - w.y)**2;
+            if (l2 == 0) return Math.hypot(p.x - v.x, p.y - v.y);
+            let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
+        }
+
+        function handleInput(e) {
+            if(gameState !== 'playing') return;
+            e.preventDefault();
+            let cx, cy;
+            if(e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; } else { cx = e.clientX; cy = e.clientY; }
+            if(e.target.closest('.bottom-panel') || e.target.closest('.top-bar')) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = cx - rect.left; const y = cy - rect.top;
+            
+            // Bonus Toplama (25 altın)
+            for(let i=0; i<bonuses.length; i++) {
+                const b = bonuses[i];
+                if(Math.hypot(x - b.x, y - b.y) < 40) {
+                    gold += 25;
+                    bonuses.splice(i, 1);
+                    const notif = document.getElementById('bonusNotif');
+                    notif.innerText = "+25 ENERJİ";
+                    notif.style.opacity = 1;
+                    setTimeout(() => notif.style.opacity = 0, 1500);
+                    return;
+                }
+            }
+            
+            if(checkPlacement(x, y)) {
+                gold -= TOWERS[selectedType].cost;
+                towers.push(new Tower(x, y, selectedType));
+                for(let k=0; k<10; k++) particles.push(new Particle(x, y, '#00ff9d'));
+            }
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mousePos.x = e.clientX - rect.left; mousePos.y = e.clientY - rect.top;
+        });
+
+        canvas.addEventListener('mousedown', handleInput);
+        canvas.addEventListener('touchstart', handleInput, {passive: false});
+    </script>
+</body>
+</html>
