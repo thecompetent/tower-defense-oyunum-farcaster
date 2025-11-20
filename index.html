@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Farcaster Space Defense</title>
-    <!-- Farcaster Frame SDK'sını ekliyoruz -->
-    <script src="https://cdn.jsdelivr.net/npm/@farcaster/frame-sdk/dist/index.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Farcaster SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@farcaster/frame-sdk/dist/index.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;600&display=swap');
 
@@ -124,6 +124,7 @@
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             color: #00f3ff; font-family: 'Orbitron', sans-serif; font-size: 24px;
             text-shadow: 0 0 20px #00f3ff; animation: pulse 1s infinite alternate;
+            z-index: 200; /* En üstte olsun */
         }
         @keyframes pulse { from { opacity: 0.6; } to { opacity: 1; } }
         
@@ -265,22 +266,17 @@
             if(t) t.src = assets.towers[type].top;
         };
         
+        // SDK READY FIX
         window.onload = function() {
             ['archer', 'cannon', 'sniper', 'magic'].forEach(t => updateBtn(t));
             loadImages();
             
-            // --- FARCASTER SPLASH SCREEN FIX ---
-            // Bu kod Farcaster'a "Uygulama Hazır" sinyalini gönderir ve yükleme ekranını kapatır.
-            if (window.farcaster && window.farcaster.sdk) {
-                window.farcaster.sdk.actions.ready();
-            } else {
-                // Eğer sdk henüz yüklenmediyse, biraz bekleyip tekrar deneyelim (güvenlik)
-                setTimeout(() => {
-                     if (window.farcaster && window.farcaster.sdk) {
-                        window.farcaster.sdk.actions.ready();
-                     }
-                }, 1000);
-            }
+            // SDK Kontrolü ve Bildirimi
+            setTimeout(() => {
+                if (window.farcaster && window.farcaster.sdk) {
+                    window.farcaster.sdk.actions.ready();
+                }
+            }, 1000); // Biraz gecikmeli çalıştır ki oyun yüklensin
         };
 
         const images = {};
@@ -310,13 +306,25 @@
                 img.onerror = () => { console.log('Err:', o.u); images[o.k] = null; check(); };
                 img.src = o.u;
             });
-            setTimeout(() => { if(document.getElementById('loading').style.display!=='none') startGameUI(); }, 2000);
+            setTimeout(() => { check(true); }, 2500); // Zorla başlat
         }
 
-        function check() { assetsLoaded++; if(assetsLoaded >= totalAssets) startGameUI(); }
+        function check(force = false) { 
+            if(!force) assetsLoaded++; 
+            if(assetsLoaded >= totalAssets || force) startGameUI(); 
+        }
+        
         function startGameUI() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('startScreen').style.display = 'flex';
+            const loadEl = document.getElementById('loading');
+            if(loadEl) loadEl.style.display = 'none';
+            
+            const startEl = document.getElementById('startScreen');
+            if(startEl) startEl.style.display = 'flex';
+            
+            // Farcaster'a hazırım de (Tekrar garanti olsun diye)
+            if (window.farcaster && window.farcaster.sdk) {
+                window.farcaster.sdk.actions.ready();
+            }
         }
 
         const canvas = document.getElementById('gameCanvas');
@@ -452,13 +460,10 @@
             t.innerText = title; 
             s.innerText = sub;
             
-            // Ara dalgalarda sadece "DALGA X" yazsın, büyük uyarı vermesin
             if(wave !== 1 && wave !== 5 && wave !== 10 && wave !== 15 && wave < 15) {
-                 t.style.fontSize = "2rem";
-                 s.style.display = "none";
+                 t.style.fontSize = "2rem"; s.style.display = "none";
             } else {
-                 t.style.fontSize = "3.5rem";
-                 s.style.display = "block";
+                 t.style.fontSize = "3.5rem"; s.style.display = "block";
             }
             
             if(wave >= 15) t.style.color = '#00ff00';
@@ -467,9 +472,7 @@
             else t.style.color = '#00f3ff';
 
             el.classList.add('active');
-            setTimeout(() => {
-                el.classList.remove('active');
-            }, 3000);
+            setTimeout(() => { el.classList.remove('active'); }, 3000);
         }
 
         class Enemy {
@@ -483,18 +486,16 @@
                 const isBoss = (wave % 5 === 0 && rand < 0.2); 
                 const isFast = (rand < 0.35 + (wave*0.02));
                 
-                // --- ZORLUK ÇARPANLARI (EXTREME) ---
                 let multiplier = 1.0;
-                if (wave >= 5) multiplier = 1.5; // %50
-                if (wave >= 10) multiplier = 3.0; // %200
-                if (wave >= 15) multiplier = 6.0; // %500 (Daha da zor)
+                if (wave >= 5) multiplier = 1.5;
+                if (wave >= 10) multiplier = 3.0; 
+                if (wave >= 15) multiplier = 5.0; 
 
-                // Başlangıç HP
                 let baseHp = 80 + (wave * 15); 
 
                 if (isBoss) {
                     this.type = 'boss';
-                    this.hp = (baseHp * 12) * multiplier; // Boss çok daha tank
+                    this.hp = (baseHp * 12) * multiplier; 
                     this.speed = 0.8;
                     this.imgKey = 'ufo_b';
                 } else if (isFast) {
@@ -505,7 +506,7 @@
                 } else {
                     this.type = 'normal';
                     this.hp = baseHp * multiplier;
-                    this.speed = (1.5 + (wave * 0.05)) * (multiplier > 1 ? 1.2 : 1);
+                    this.speed = (1.5 + (wave * 0.05)) * (multiplier > 1 ? 1.1 : 1);
                     this.imgKey = 'ufo_n';
                 }
                 
