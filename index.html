@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Farcaster Space Defense (Final Nightmare)</title>
+    <title>Farcaster Space Defense</title>
+    <!-- Farcaster Frame SDK'sını ekliyoruz -->
+    <script src="https://cdn.jsdelivr.net/npm/@farcaster/frame-sdk/dist/index.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;600&display=swap');
@@ -213,7 +215,7 @@
 
     <div id="startScreen" class="overlay-screen" style="display:none;">
         <h1 style="font-family: 'Orbitron', sans-serif; font-size: 4rem; background: linear-gradient(to right, #00f3ff, #0066ff); -webkit-background-clip: text; color: transparent; margin-bottom: 10px; text-shadow: 0 0 40px rgba(0, 243, 255, 0.3);">UZAY SAVUNMASI</h1>
-        <p style="color: #94a3b8; font-size: 1.2rem; margin-bottom: 30px;">Zorluk Seviyesi: NIGHTMARE</p>
+        <p style="color: #94a3b8; font-size: 1.2rem; margin-bottom: 30px;">Farcaster Edition</p>
         <button class="space-btn" onclick="initGame()">BAŞLAT</button>
     </div>
 
@@ -266,6 +268,19 @@
         window.onload = function() {
             ['archer', 'cannon', 'sniper', 'magic'].forEach(t => updateBtn(t));
             loadImages();
+            
+            // --- FARCASTER SPLASH SCREEN FIX ---
+            // Bu kod Farcaster'a "Uygulama Hazır" sinyalini gönderir ve yükleme ekranını kapatır.
+            if (window.farcaster && window.farcaster.sdk) {
+                window.farcaster.sdk.actions.ready();
+            } else {
+                // Eğer sdk henüz yüklenmediyse, biraz bekleyip tekrar deneyelim (güvenlik)
+                setTimeout(() => {
+                     if (window.farcaster && window.farcaster.sdk) {
+                        window.farcaster.sdk.actions.ready();
+                     }
+                }, 1000);
+            }
         };
 
         const images = {};
@@ -400,19 +415,16 @@
             bgToxic.style.opacity = 0;
 
             if (wave >= 15) {
-                // RADYOAKTİF / TOXIC (Yeşil/Mor)
                 color = '#00ff00';
                 shadow = 'rgba(0, 255, 0, 0.8)';
                 bgToxic.style.opacity = 1; 
                 if(wave === 15) { title = "RADYOAKTİF ALARM"; sub = "ZORLUK %400"; }
             } else if (wave >= 10) {
-                // HARDCORE (Kırmızı)
                 color = '#ff0000';
                 shadow = 'rgba(255, 0, 0, 0.6)';
                 bgRed.style.opacity = 1;
                 if(wave === 10) { title = "HARDCORE MOD"; sub = "ZORLUK %200"; }
             } else if (wave >= 5) {
-                // TEHLİKE (Turuncu)
                 color = '#ff9900';
                 shadow = 'rgba(255, 153, 0, 0.4)';
                 bgRed.style.opacity = 0.3;
@@ -694,7 +706,7 @@
         function resetGame() { initGame(); }
         function startWave() { 
             // Düşman sayısını artırdık
-            toSpawn = 10 + Math.floor(wave * 2.5); 
+            toSpawn = 10 + Math.floor(wave * 2); 
             // Saldırı hızı
             spawnRate = Math.max(15, 55 - wave*2);
             updateTheme(); 
