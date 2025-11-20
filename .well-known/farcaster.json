@@ -1,9 +1,10 @@
 {
   "accountAssociation": {
-    "header": "eyJmaWQiOiA4ODg4fQ",
-    "payload": "eyJkb21haW4iOiAiem9yLXUuY29tIn0",
-    "signature": "MHhjZm..."
-  },
+    "header": "eyJmaWQiOjU4MDcwMiwidHlwZSI6ImF1dGgiLCJrZXkiOiIweDY1Y0Y1RTAzNzg5NWJDYzI0NjA1QTA2N0FFOUIwNTU2YUUzRjI4QzMifQ",
+    "payload": "eyJkb21haW4iOiJ0b3dlci1kZWZlbnNlLW95dW51bS1mYXJjYXN0ZXIudmVyY2VsLmFwcCJ9",
+    "signature": "jr7D5IJTeyF8kTdTrDLFINVFyABligXHkB69CzXC0AZVfbS4r6TqKni3xJZD9EMbEn/mrp5kSoWYkDnWnsgmMhw="
+  }
+}
   "frame": {
     "version": "1",
     "name": "Space Defense",
