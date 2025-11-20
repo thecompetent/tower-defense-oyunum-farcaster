@@ -1,0 +1,18 @@
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOiA4ODg4fQ",
+    "payload": "eyJkb21haW4iOiAiem9yLXUuY29tIn0",
+    "signature": "MHhjZm..."
+  },
+  "frame": {
+    "version": "1",
+    "name": "Space Defense",
+    "iconUrl": "https://raw.githubusercontent.com/thecompetent/tower-defense-oyunum-farcaster/main/detail-crystal-large.png",
+    "homeUrl": "https://BURAYA-VERCEL-LINKINI-YAPISTIR.vercel.app",
+    "imageUrl": "https://raw.githubusercontent.com/thecompetent/tower-defense-oyunum-farcaster/main/detail-crystal-large.png",
+    "buttonTitle": "Play Now",
+    "splashImageUrl": "https://raw.githubusercontent.com/thecompetent/tower-defense-oyunum-farcaster/main/detail-crystal-large.png",
+    "splashBackgroundColor": "#0f172a",
+    "webhookUrl": "https://api.farcaster.com/webhook"
+  }
+}
