@@ -18,113 +18,141 @@
             touch-action: none;
             margin: 0; padding: 0;
             user-select: none; -webkit-user-select: none;
-            cursor: crosshair;
+            cursor: pointer; /* Mobilde dokunma imleci */
             transition: background-color 2s, filter 2s;
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Tam ekran yüksekliği */
         }
-        canvas { display: block; touch-action: none; }
-        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        
+        /* Canvas kapsayıcısı - Ekranın ortasına ve tam boyut */
+        #gameContainer {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Çok geniş ekranlarda sınırlama */
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        canvas { 
+            display: block; 
+            width: 100%; 
+            height: 100%; 
+            touch-action: none; 
+        }
+
+        .ui-layer { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            pointer-events: none; 
+        }
         
         :root {
             --theme-color: #00f3ff;
             --theme-shadow: rgba(0, 243, 255, 0.3);
         }
 
-        /* HUD */
+        /* HUD - Mobil için daha kompakt */
         .top-bar {
             background: rgba(2, 6, 23, 0.9);
-            padding: 10px 25px;
+            padding: 8px 15px;
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 2px solid var(--theme-color);
-            box-shadow: 0 0 20px var(--theme-shadow);
+            box-shadow: 0 0 15px var(--theme-shadow);
             backdrop-filter: blur(8px);
             font-family: 'Orbitron', sans-serif;
             transition: all 1s;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            position: absolute; top: 0; left: 0; right: 0; z-index: 50;
         }
         .stat-box { display: flex; flex-direction: column; align-items: center; }
-        .stat-label { font-size: 10px; color: var(--theme-color); letter-spacing: 2px; text-transform: uppercase; transition: color 1s; }
-        .stat-value { font-size: 20px; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--theme-color); transition: text-shadow 1s; }
+        .stat-label { font-size: 9px; color: var(--theme-color); letter-spacing: 1px; text-transform: uppercase; }
+        .stat-value { font-size: 16px; font-weight: 900; color: #fff; text-shadow: 0 0 8px var(--theme-color); }
 
-        /* Kule Paneli */
+        /* Kule Paneli - Alt kısma sabit */
         .bottom-panel {
-            position: absolute; bottom: 20px; left: 50%;
+            position: absolute; bottom: 10px; left: 50%;
             transform: translateX(-50%);
             background: rgba(2, 6, 23, 0.95);
-            padding: 12px 25px;
-            border-radius: 24px;
-            display: flex; gap: 15px; pointer-events: auto;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex; gap: 8px; pointer-events: auto;
             border: 1px solid var(--theme-color);
-            box-shadow: 0 0 30px var(--theme-shadow);
+            box-shadow: 0 0 20px var(--theme-shadow);
             backdrop-filter: blur(12px);
             z-index: 50;
-            transition: all 1s;
+            width: 95%; /* Mobilde genişlik */
+            max-width: 500px;
+            justify-content: space-around;
         }
         
         .tower-card {
-            width: 80px; height: 110px;
+            width: 65px; height: 90px; /* Mobilde biraz daha küçük */
             background: linear-gradient(180deg, #0f172a, #020617);
             border: 1px solid #1e293b;
-            border-radius: 12px;
+            border-radius: 10px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             cursor: pointer; transition: all 0.2s; position: relative;
         }
-        .tower-card:hover { border-color: var(--theme-color); transform: translateY(-2px); }
         .tower-card.selected {
             border-color: #00ff9d;
             background: linear-gradient(180deg, #064e3b, #020617);
-            box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
-            transform: translateY(-10px);
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+            transform: translateY(-5px);
         }
         
-        .icon-stack { position: relative; width: 50px; height: 50px; margin-bottom: 8px; }
+        .icon-stack { position: relative; width: 40px; height: 40px; margin-bottom: 4px; }
         .icon-stack img {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: contain; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
+            object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
         }
-        .tower-name { font-size: 9px; color: #94a3b8; font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
-        .tower-cost { font-size: 12px; color: #fbbf24; font-weight: bold; }
+        .tower-name { font-size: 8px; color: #94a3b8; font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tower-cost { font-size: 10px; color: #fbbf24; font-weight: bold; }
 
         /* Bildirimler */
         .notification {
-            position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
-            font-family: 'Orbitron', sans-serif; color: #ffd700; font-size: 1.5rem;
-            text-shadow: 0 0 10px orange; pointer-events: none;
-            opacity: 0; transition: opacity 0.5s; z-index: 60;
+            position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+            font-family: 'Orbitron', sans-serif; color: #ffd700; font-size: 1.2rem;
+            text-shadow: 0 0 8px orange; pointer-events: none;
+            opacity: 0; transition: opacity 0.5s; z-index: 60; width: 100%; text-align: center;
         }
 
         /* Dalga Uyarıları */
         .wave-warning {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
             font-family: 'Orbitron', sans-serif; text-align: center; pointer-events: none;
             opacity: 0; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 100;
-            background: rgba(0,0,0,0.8); padding: 30px 60px; border: 3px solid var(--theme-color);
-            box-shadow: 0 0 80px var(--theme-shadow); border-radius: 10px;
+            background: rgba(0,0,0,0.8); padding: 20px 30px; border: 2px solid var(--theme-color);
+            box-shadow: 0 0 50px var(--theme-shadow); border-radius: 10px; width: 80%;
         }
         .wave-warning.active { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        .warning-title { font-size: 3.5rem; font-weight: 900; color: var(--theme-color); text-shadow: 0 0 30px var(--theme-color); margin-bottom: 10px; }
-        .warning-sub { font-size: 1.5rem; color: #fff; letter-spacing: 5px; text-transform: uppercase; }
+        .warning-title { font-size: 2.5rem; font-weight: 900; color: var(--theme-color); text-shadow: 0 0 20px var(--theme-color); margin-bottom: 5px; }
+        .warning-sub { font-size: 1rem; color: #fff; letter-spacing: 3px; text-transform: uppercase; }
 
         /* Overlay */
         .overlay-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(1, 1, 5, 0.95); backdrop-filter: blur(15px);
+            background: rgba(1, 1, 5, 0.98); backdrop-filter: blur(15px);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            pointer-events: auto; z-index: 100; text-align: center;
+            pointer-events: auto; z-index: 100; text-align: center; padding: 20px;
         }
         .space-btn {
             background: linear-gradient(90deg, var(--theme-color), #0066ff);
             color: #fff; border: none;
-            padding: 16px 50px; font-size: 20px; font-family: 'Orbitron', sans-serif; font-weight: 900;
-            cursor: pointer; margin-top: 30px; clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
-            box-shadow: 0 0 30px var(--theme-shadow);
+            padding: 14px 40px; font-size: 18px; font-family: 'Orbitron', sans-serif; font-weight: 900;
+            cursor: pointer; margin-top: 20px; clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            box-shadow: 0 0 25px var(--theme-shadow);
             text-transform: uppercase; letter-spacing: 2px; transition: all 0.2s;
         }
-        .space-btn:hover { background: #fff; color: #000; box-shadow: 0 0 50px var(--theme-color); }
+        .space-btn:hover { background: #fff; color: #000; box-shadow: 0 0 40px var(--theme-color); }
 
         #loading {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #00f3ff; font-family: 'Orbitron', sans-serif; font-size: 24px;
-            text-shadow: 0 0 20px #00f3ff; animation: pulse 1s infinite alternate;
-            z-index: 200; /* En üstte olsun */
+            color: #00f3ff; font-family: 'Orbitron', sans-serif; font-size: 18px;
+            text-shadow: 0 0 15px #00f3ff; animation: pulse 1s infinite alternate;
+            z-index: 200; text-align: center; width: 100%;
         }
         @keyframes pulse { from { opacity: 0.6; } to { opacity: 1; } }
         
@@ -149,81 +177,83 @@
 
     <div id="loading">SİSTEM YÜKLENİYOR...</div>
     
-    <div class="danger-bg bg-red" id="bgRed"></div>
-    <div class="danger-bg bg-toxic" id="bgToxic"></div>
-    
-    <canvas id="gameCanvas"></canvas>
+    <div id="gameContainer">
+        <div class="danger-bg bg-red" id="bgRed"></div>
+        <div class="danger-bg bg-toxic" id="bgToxic"></div>
+        
+        <canvas id="gameCanvas"></canvas>
 
-    <div id="bonusNotif" class="notification">+25 ENERJİ!</div>
-    
-    <!-- Uyarı Kutusu -->
-    <div id="waveWarning" class="wave-warning">
-        <div class="warning-title" id="warnTitle">DALGA 1</div>
-        <div class="warning-sub" id="warnSub">DÜŞMANLAR YAKLAŞIYOR</div>
-    </div>
+        <div id="bonusNotif" class="notification">+25 ENERJİ!</div>
+        
+        <!-- Uyarı Kutusu -->
+        <div id="waveWarning" class="wave-warning">
+            <div class="warning-title" id="warnTitle">DALGA 1</div>
+            <div class="warning-sub" id="warnSub">DÜŞMANLAR YAKLAŞIYOR</div>
+        </div>
 
-    <div class="ui-layer" id="uiLayer">
-        <div class="top-bar">
-            <div class="stat-box">
-                <span class="stat-label">KALKAN</span>
-                <span class="stat-value" id="lives" style="color: #ef4444;">100%</span>
+        <div class="ui-layer" id="uiLayer">
+            <div class="top-bar">
+                <div class="stat-box">
+                    <span class="stat-label">KALKAN</span>
+                    <span class="stat-value" id="lives" style="color: #ef4444;">100%</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">DALGA</span>
+                    <span class="stat-value" id="wave">1</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">ENERJİ</span>
+                    <span class="stat-value" id="gold" style="color: #fbbf24;">150</span>
+                </div>
             </div>
-            <div class="stat-box">
-                <span class="stat-label">DALGA</span>
-                <span class="stat-value" id="wave">1</span>
-            </div>
-            <div class="stat-box">
-                <span class="stat-label">ENERJİ</span>
-                <span class="stat-value" id="gold" style="color: #fbbf24;">150</span>
+
+            <div class="bottom-panel">
+                <div class="tower-card selected" onclick="selectTower('archer')" id="btn-archer">
+                    <div class="icon-stack">
+                        <img id="img-archer-base" src="" alt="Base">
+                        <img id="img-archer-top" src="" alt="Top">
+                    </div>
+                    <span class="tower-name">Plazma</span>
+                    <span class="tower-cost">100</span>
+                </div>
+                <div class="tower-card" onclick="selectTower('cannon')" id="btn-cannon">
+                    <div class="icon-stack">
+                        <img id="img-cannon-base" src="" alt="Base">
+                        <img id="img-cannon-top" src="" alt="Top">
+                    </div>
+                    <span class="tower-name">Füze</span>
+                    <span class="tower-cost">200</span>
+                </div>
+                <div class="tower-card" onclick="selectTower('sniper')" id="btn-sniper">
+                    <div class="icon-stack">
+                        <img id="img-sniper-base" src="" alt="Base">
+                        <img id="img-sniper-top" src="" alt="Top">
+                    </div>
+                    <span class="tower-name">İyon</span>
+                    <span class="tower-cost">300</span>
+                </div>
+                 <div class="tower-card" onclick="selectTower('magic')" id="btn-magic">
+                    <div class="icon-stack">
+                        <img id="img-magic-base" src="" alt="Base">
+                        <img id="img-magic-top" src="" alt="Top">
+                    </div>
+                    <span class="tower-name">Prizma</span>
+                    <span class="tower-cost">450</span>
+                </div>
             </div>
         </div>
 
-        <div class="bottom-panel">
-            <div class="tower-card selected" onclick="selectTower('archer')" id="btn-archer">
-                <div class="icon-stack">
-                    <img id="img-archer-base" src="" alt="Base">
-                    <img id="img-archer-top" src="" alt="Top">
-                </div>
-                <span class="tower-name">Plazma</span>
-                <span class="tower-cost">100</span>
-            </div>
-            <div class="tower-card" onclick="selectTower('cannon')" id="btn-cannon">
-                <div class="icon-stack">
-                    <img id="img-cannon-base" src="" alt="Base">
-                    <img id="img-cannon-top" src="" alt="Top">
-                </div>
-                <span class="tower-name">Füze</span>
-                <span class="tower-cost">200</span>
-            </div>
-            <div class="tower-card" onclick="selectTower('sniper')" id="btn-sniper">
-                <div class="icon-stack">
-                    <img id="img-sniper-base" src="" alt="Base">
-                    <img id="img-sniper-top" src="" alt="Top">
-                </div>
-                <span class="tower-name">İyon</span>
-                <span class="tower-cost">300</span>
-            </div>
-             <div class="tower-card" onclick="selectTower('magic')" id="btn-magic">
-                <div class="icon-stack">
-                    <img id="img-magic-base" src="" alt="Base">
-                    <img id="img-magic-top" src="" alt="Top">
-                </div>
-                <span class="tower-name">Prizma</span>
-                <span class="tower-cost">450</span>
-            </div>
+        <div id="startScreen" class="overlay-screen" style="display:none;">
+            <h1 style="font-family: 'Orbitron', sans-serif; font-size: 3rem; background: linear-gradient(to right, #00f3ff, #0066ff); -webkit-background-clip: text; color: transparent; margin-bottom: 10px; text-shadow: 0 0 30px rgba(0, 243, 255, 0.3);">UZAY SAVUNMASI</h1>
+            <p style="color: #94a3b8; font-size: 1rem; margin-bottom: 20px; max-width: 80%;">Farcaster'a Özel Mobil Sürüm</p>
+            <button class="space-btn" onclick="initGame()">BAŞLAT</button>
         </div>
-    </div>
 
-    <div id="startScreen" class="overlay-screen" style="display:none;">
-        <h1 style="font-family: 'Orbitron', sans-serif; font-size: 4rem; background: linear-gradient(to right, #00f3ff, #0066ff); -webkit-background-clip: text; color: transparent; margin-bottom: 10px; text-shadow: 0 0 40px rgba(0, 243, 255, 0.3);">UZAY SAVUNMASI</h1>
-        <p style="color: #94a3b8; font-size: 1.2rem; margin-bottom: 30px;">Farcaster Edition</p>
-        <button class="space-btn" onclick="initGame()">BAŞLAT</button>
-    </div>
-
-    <div id="gameOverScreen" class="overlay-screen hidden" style="display: none;">
-        <h1 style="font-family: 'Orbitron', sans-serif; font-size: 5rem; color: #ef4444; text-shadow: 0 0 50px rgba(239, 68, 68, 0.6);">ÜS YOK EDİLDİ</h1>
-        <p style="color: #fff; font-size: 1.5rem; margin-top: 20px;">Dayanılan Dalga: <span id="finalWave" style="color: #fbbf24;">0</span></p>
-        <button class="space-btn" onclick="resetGame()">TEKRAR DENE</button>
+        <div id="gameOverScreen" class="overlay-screen hidden" style="display: none;">
+            <h1 style="font-family: 'Orbitron', sans-serif; font-size: 4rem; color: #ef4444; text-shadow: 0 0 40px rgba(239, 68, 68, 0.6);">ÜS YOK EDİLDİ</h1>
+            <p style="color: #fff; font-size: 1.2rem; margin-top: 20px;">Dayanılan Dalga: <span id="finalWave" style="color: #fbbf24;">0</span></p>
+            <button class="space-btn" onclick="resetGame()">TEKRAR DENE</button>
+        </div>
     </div>
 
     <script>
@@ -266,17 +296,16 @@
             if(t) t.src = assets.towers[type].top;
         };
         
-        // SDK READY FIX
         window.onload = function() {
             ['archer', 'cannon', 'sniper', 'magic'].forEach(t => updateBtn(t));
             loadImages();
             
-            // SDK Kontrolü ve Bildirimi
+            // SDK Ready
             setTimeout(() => {
                 if (window.farcaster && window.farcaster.sdk) {
                     window.farcaster.sdk.actions.ready();
                 }
-            }, 1000); // Biraz gecikmeli çalıştır ki oyun yüklensin
+            }, 1000);
         };
 
         const images = {};
@@ -306,7 +335,7 @@
                 img.onerror = () => { console.log('Err:', o.u); images[o.k] = null; check(); };
                 img.src = o.u;
             });
-            setTimeout(() => { check(true); }, 2500); // Zorla başlat
+            setTimeout(() => { check(true); }, 2500);
         }
 
         function check(force = false) { 
@@ -315,16 +344,9 @@
         }
         
         function startGameUI() {
-            const loadEl = document.getElementById('loading');
-            if(loadEl) loadEl.style.display = 'none';
-            
-            const startEl = document.getElementById('startScreen');
-            if(startEl) startEl.style.display = 'flex';
-            
-            // Farcaster'a hazırım de (Tekrar garanti olsun diye)
-            if (window.farcaster && window.farcaster.sdk) {
-                window.farcaster.sdk.actions.ready();
-            }
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex';
+            if (window.farcaster && window.farcaster.sdk) window.farcaster.sdk.actions.ready();
         }
 
         const canvas = document.getElementById('gameCanvas');
@@ -334,7 +356,7 @@
         let gold = 150;
         let lives = 20;
         let wave = 1;
-        const TILE_SIZE = 128; 
+        const TILE_SIZE = 80; // Mobilde daha uygun
         
         let gridW, gridH;
         let pathPoints = [];
@@ -344,10 +366,10 @@
         let mousePos = {x: -100, y: -100};
 
         const TOWERS = {
-            archer: { range: 250, damage: 30, cooldown: 35, cost: 100, type: 'plasma' }, 
-            cannon: { range: 200, damage: 70, cooldown: 70, cost: 200, type: 'missile' },
-            sniper: { range: 400, damage: 200, cooldown: 100, cost: 300, type: 'sniper' },
-            magic:  { range: 300, damage: 2, cooldown: 4, cost: 450, type: 'laser' }
+            archer: { range: 180, damage: 30, cooldown: 35, cost: 100, type: 'plasma' }, 
+            cannon: { range: 150, damage: 70, cooldown: 70, cost: 200, type: 'missile' },
+            sniper: { range: 300, damage: 200, cooldown: 100, cost: 300, type: 'sniper' },
+            magic:  { range: 220, damage: 2, cooldown: 4, cost: 450, type: 'laser' }
         };
         
         let selectedType = 'archer';
@@ -362,8 +384,9 @@
         let spawnRate = 60;
 
         function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            const container = document.getElementById('gameContainer');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
             initMap();
             initStars();
         }
@@ -371,7 +394,7 @@
 
         function initStars() {
             stars = [];
-            for(let i=0; i<70; i++) { 
+            for(let i=0; i<50; i++) { 
                 stars.push({
                     x: Math.random() * canvas.width, y: Math.random() * canvas.height,
                     size: Math.random() * 2 + 1, blink: Math.random() * 0.05
@@ -384,86 +407,68 @@
             gridH = Math.ceil(canvas.height / TILE_SIZE);
             
             pathPoints = [];
-            const midY = canvas.height / 2;
+            // Dikey ekran için optimize edilmiş yol (Mobil)
+            const midX = canvas.width / 2;
             
-            pathPoints.push({x: 0, y: midY - 120});
-            pathPoints.push({x: canvas.width * 0.25, y: midY - 120});
-            pathPoints.push({x: canvas.width * 0.25, y: midY + 120});
-            pathPoints.push({x: canvas.width * 0.65, y: midY + 120});
-            pathPoints.push({x: canvas.width * 0.65, y: midY - 80});
-            pathPoints.push({x: canvas.width, y: midY - 80});
+            pathPoints.push({x: midX - 100, y: 0});
+            pathPoints.push({x: midX - 100, y: canvas.height * 0.2});
+            pathPoints.push({x: midX + 100, y: canvas.height * 0.2});
+            pathPoints.push({x: midX + 100, y: canvas.height * 0.5});
+            pathPoints.push({x: midX - 80, y: canvas.height * 0.5});
+            pathPoints.push({x: midX - 80, y: canvas.height * 0.8});
+            pathPoints.push({x: midX, y: canvas.height * 0.8});
 
-            basePos = { x: canvas.width - 90, y: midY - 80 };
+            basePos = { x: midX, y: canvas.height * 0.85 }; // Üs en altta ortada
 
             decorations = [];
-            for(let i=0; i<12; i++) { 
+            for(let i=0; i<10; i++) { 
                 const x = Math.random() * canvas.width;
                 const y = Math.random() * canvas.height;
                 let safe = true;
-                if(Math.hypot(x - basePos.x, y - basePos.y) < 200) safe = false;
+                if(Math.hypot(x - basePos.x, y - basePos.y) < 150) safe = false;
                 for(let j=0; j<pathPoints.length-1; j++) {
-                    if(distToSegment({x,y}, pathPoints[j], pathPoints[j+1]) < 120) safe = false;
+                    if(distToSegment({x,y}, pathPoints[j], pathPoints[j+1]) < 80) safe = false;
                 }
-                if(safe) decorations.push({x, y, s: 0.7 + Math.random()*0.6, type: Math.random()>0.4 ? 'rock':'crater'});
+                if(safe) decorations.push({x, y, s: 0.6 + Math.random()*0.4, type: Math.random()>0.4 ? 'rock':'crater'});
             }
         }
 
-        // --- DİNAMİK ZORLUK & TEMA YÖNETİMİ ---
+        // ... ZORLUK VE TEMA (Önceki kodla aynı mantık) ...
         function updateTheme() {
             const root = document.documentElement;
             const bgRed = document.getElementById('bgRed');
             const bgToxic = document.getElementById('bgToxic');
             
-            let color = '#00f3ff'; 
-            let shadow = 'rgba(0, 243, 255, 0.2)';
-            let title = "DALGA " + wave;
-            let sub = "HAZIR OL";
+            let color = '#00f3ff'; let shadow = 'rgba(0, 243, 255, 0.2)';
+            let title = "DALGA " + wave; let sub = "HAZIR OL";
             
-            bgRed.style.opacity = 0;
-            bgToxic.style.opacity = 0;
+            bgRed.style.opacity = 0; bgToxic.style.opacity = 0;
 
             if (wave >= 15) {
-                color = '#00ff00';
-                shadow = 'rgba(0, 255, 0, 0.8)';
-                bgToxic.style.opacity = 1; 
+                color = '#00ff00'; shadow = 'rgba(0, 255, 0, 0.8)'; bgToxic.style.opacity = 1; 
                 if(wave === 15) { title = "RADYOAKTİF ALARM"; sub = "ZORLUK %400"; }
             } else if (wave >= 10) {
-                color = '#ff0000';
-                shadow = 'rgba(255, 0, 0, 0.6)';
-                bgRed.style.opacity = 1;
+                color = '#ff0000'; shadow = 'rgba(255, 0, 0, 0.6)'; bgRed.style.opacity = 1;
                 if(wave === 10) { title = "HARDCORE MOD"; sub = "ZORLUK %200"; }
             } else if (wave >= 5) {
-                color = '#ff9900';
-                shadow = 'rgba(255, 153, 0, 0.4)';
-                bgRed.style.opacity = 0.3;
+                color = '#ff9900'; shadow = 'rgba(255, 153, 0, 0.4)'; bgRed.style.opacity = 0.3;
                 if(wave === 5) { title = "MOD: ZOR"; sub = "ZORLUK %50 ARTTI"; }
             }
-
             root.style.setProperty('--theme-color', color);
             root.style.setProperty('--theme-shadow', shadow);
-            
             showWaveWarning(title, sub);
-            
-            const btn = document.querySelector('.space-btn');
-            if(btn) {
-                if(wave >= 15) btn.style.background = 'linear-gradient(90deg, #00ff00, #cc00ff)';
-                else if(wave >= 10) btn.style.background = 'linear-gradient(90deg, #ff0000, #800000)';
-                else if(wave >= 5) btn.style.background = 'linear-gradient(90deg, #ff9900, #cc6600)';
-                else btn.style.background = 'linear-gradient(90deg, #00f3ff, #0066ff)';
-            }
         }
 
         function showWaveWarning(title, sub) {
             const el = document.getElementById('waveWarning');
             const t = el.querySelector('.warning-title');
             const s = el.querySelector('.warning-sub');
-            t.innerText = title; 
-            s.innerText = sub;
+            t.innerText = title; s.innerText = sub;
             
             if(wave !== 1 && wave !== 5 && wave !== 10 && wave !== 15 && wave < 15) {
-                 t.style.fontSize = "2rem"; s.style.display = "none";
+                 t.style.fontSize = "1.5rem"; s.style.display = "none"; // Mobilde daha küçük
             } else {
-                 t.style.fontSize = "3.5rem"; s.style.display = "block";
+                 t.style.fontSize = "2.5rem"; s.style.display = "block";
             }
             
             if(wave >= 15) t.style.color = '#00ff00';
@@ -496,17 +501,17 @@
                 if (isBoss) {
                     this.type = 'boss';
                     this.hp = (baseHp * 12) * multiplier; 
-                    this.speed = 0.8;
+                    this.speed = 0.5; // Mobilde daha yavaş
                     this.imgKey = 'ufo_b';
                 } else if (isFast) {
                     this.type = 'fast';
                     this.hp = (baseHp * 0.6) * multiplier;
-                    this.speed = (4.0 + (wave * 0.1)) * (multiplier > 1 ? 1.3 : 1);
+                    this.speed = (3.0 + (wave * 0.1)) * (multiplier > 1 ? 1.3 : 1);
                     this.imgKey = 'ufo_f';
                 } else {
                     this.type = 'normal';
                     this.hp = baseHp * multiplier;
-                    this.speed = (1.5 + (wave * 0.05)) * (multiplier > 1 ? 1.1 : 1);
+                    this.speed = (1.2 + (wave * 0.05)) * (multiplier > 1 ? 1.2 : 1);
                     this.imgKey = 'ufo_n';
                 }
                 
@@ -532,7 +537,7 @@
             }
             draw() {
                 ctx.save();
-                const bob = Math.sin((Date.now()/300) + this.floatY) * 8;
+                const bob = Math.sin((Date.now()/300) + this.floatY) * 5;
                 ctx.translate(this.x, this.y + bob);
                 
                 let shadowCol = '#0ff';
@@ -540,12 +545,12 @@
                 if(this.type === 'boss') shadowCol = '#f00';
                 if(wave >= 15) shadowCol = '#0f0';
 
-                ctx.shadowBlur = 20; ctx.shadowColor = shadowCol;
+                ctx.shadowBlur = 15; ctx.shadowColor = shadowCol;
                 
                 const img = images[this.imgKey];
                 if(img) {
-                    let size = 80;
-                    if(this.type === 'boss') size = 160; 
+                    let size = 50; // Mobilde boyut
+                    if(this.type === 'boss') size = 90; 
                     ctx.drawImage(img, -size/2, -size/2, size, size);
                     if(this.type === 'boss' || wave >= 15) {
                          ctx.globalCompositeOperation = 'source-atop';
@@ -555,20 +560,20 @@
                     }
                 } else {
                     ctx.fillStyle = shadowCol;
-                    ctx.beginPath(); ctx.arc(0,0,30,0,Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(0,0,20,0,Math.PI*2); ctx.fill();
                 }
                 ctx.restore();
                 
                 const pct = Math.max(0, this.hp / this.maxHp);
-                ctx.fillStyle = '#333'; ctx.fillRect(this.x - 30, this.y - 60 + bob, 60, 6);
-                ctx.fillStyle = shadowCol; ctx.fillRect(this.x - 30, this.y - 60 + bob, 60 * pct, 6);
+                ctx.fillStyle = '#333'; ctx.fillRect(this.x - 20, this.y - 40 + bob, 40, 4);
+                ctx.fillStyle = shadowCol; ctx.fillRect(this.x - 20, this.y - 40 + bob, 40 * pct, 4);
             }
         }
 
         class Bonus {
             constructor() {
-                this.x = Math.random() * (canvas.width - 100) + 50;
-                this.y = Math.random() * (canvas.height - 100) + 50;
+                this.x = Math.random() * (canvas.width - 80) + 40;
+                this.y = Math.random() * (canvas.height - 80) + 40;
                 this.timer = 300; 
                 this.scale = 0;
             }
@@ -585,13 +590,10 @@
                 const bounce = Math.sin(Date.now() / 200) * 5;
                 const img = images['bonus'];
                 if(img) {
-                    ctx.drawImage(img, -25, -25 + bounce, 50, 50);
+                    ctx.drawImage(img, -20, -20 + bounce, 40, 40);
                 } else {
-                    ctx.fillStyle = 'gold'; ctx.beginPath(); ctx.arc(0, bounce, 15, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = 'gold'; ctx.beginPath(); ctx.arc(0, bounce, 12, 0, Math.PI*2); ctx.fill();
                 }
-                ctx.shadowBlur = 0;
-                ctx.font = "10px Orbitron"; ctx.fillStyle = "#fff"; ctx.textAlign = "center";
-                ctx.fillText("TOPLA", 0, 35 + bounce);
                 ctx.restore();
             }
         }
@@ -599,14 +601,14 @@
         class Particle {
             constructor(x, y, color) {
                 this.x = x; this.y = y; this.color = color;
-                this.vx = (Math.random()-0.5) * 6; this.vy = (Math.random()-0.5) * 6;
+                this.vx = (Math.random()-0.5) * 4; this.vy = (Math.random()-0.5) * 4;
                 this.life = 1.0;
             }
-            update() { this.x += this.vx; this.y += this.vy; this.life -= 0.04; return this.life <= 0; }
+            update() { this.x += this.vx; this.y += this.vy; this.life -= 0.05; return this.life <= 0; }
             draw() {
                 ctx.globalAlpha = this.life;
                 ctx.fillStyle = this.color;
-                ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(this.x, this.y, 3, 0, Math.PI*2); ctx.fill();
                 ctx.globalAlpha = 1.0;
             }
         }
@@ -616,7 +618,7 @@
                 this.x = Math.random() * canvas.width; this.y = -100;
                 this.tx = Math.random() * canvas.width; this.ty = Math.random() * canvas.height;
                 const angle = Math.atan2(this.ty - this.y, this.tx - this.x);
-                this.vx = Math.cos(angle) * 18; this.vy = Math.sin(angle) * 18;
+                this.vx = Math.cos(angle) * 12; this.vy = Math.sin(angle) * 12;
                 this.active = true;
             }
             update() {
@@ -624,22 +626,22 @@
                 if(this.y > this.ty) {
                     this.active = false;
                     enemies.forEach(e => {
-                        if(Math.hypot(e.x - this.x, e.y - this.y) < 180) {
+                        if(Math.hypot(e.x - this.x, e.y - this.y) < 100) {
                             e.hp -= 100;
                             if(e.hp <= 0 && !e.dead) { e.dead = true; gold += 15; }
                         }
                     });
-                    for(let i=0; i<30; i++) particles.push(new Particle(this.x, this.y, '#ffaa00'));
+                    for(let i=0; i<20; i++) particles.push(new Particle(this.x, this.y, '#ffaa00'));
                 }
             }
             draw() {
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 ctx.rotate(Math.atan2(this.vy, this.vx) - Math.PI/2);
-                const grad = ctx.createLinearGradient(0, 0, 0, -100);
+                const grad = ctx.createLinearGradient(0, 0, 0, -60);
                 grad.addColorStop(0, '#fff'); grad.addColorStop(0.4, '#ff5500'); grad.addColorStop(1, 'transparent');
                 ctx.fillStyle = grad;
-                ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(10, -100); ctx.lineTo(-10, -100); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(6, -60); ctx.lineTo(-6, -60); ctx.fill();
                 ctx.restore();
             }
         }
@@ -674,16 +676,16 @@
                     tx: target.x, ty: target.y,
                     target: target,
                     type: this.stats.type,
-                    speed: this.stats.type === 'missile' ? 10 : (this.stats.type === 'sniper' ? 30 : 20),
+                    speed: this.stats.type === 'missile' ? 8 : (this.stats.type === 'sniper' ? 25 : 15),
                     damage: this.stats.damage,
                     life: 0
                 });
             }
             draw() {
                 const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
-                ctx.shadowBlur = 25; ctx.shadowColor = themeColor;
+                ctx.shadowBlur = 15; ctx.shadowColor = themeColor;
                 ctx.fillStyle = 'rgba(10, 15, 30, 0.9)';
-                ctx.beginPath(); ctx.arc(this.x, this.y, 45, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(this.x, this.y, 30, 0, Math.PI*2); ctx.fill(); // Küçük
                 ctx.strokeStyle = themeColor; 
                 ctx.lineWidth = 2; ctx.stroke();
                 ctx.shadowBlur = 0;
@@ -693,10 +695,10 @@
                 const baseImg = images[this.type + '_b'];
                 const topImg = images[this.type + '_t'];
                 
-                if(baseImg) { const s = 110; ctx.drawImage(baseImg, -s/2, -s/2, s, s); }
+                if(baseImg) { const s = 65; ctx.drawImage(baseImg, -s/2, -s/2, s, s); }
                 if(topImg) {
                     if(this.type !== 'magic') ctx.rotate(this.angle + Math.PI/2);
-                    const s = 100; ctx.drawImage(topImg, -s/2, -s/2, s, s);
+                    const s = 60; ctx.drawImage(topImg, -s/2, -s/2, s, s);
                 }
                 ctx.restore();
             }
@@ -706,10 +708,8 @@
         function resetVars() { gold = 200; lives = 20; wave = 1; towers = []; enemies = []; projectiles = []; particles = []; meteors = []; bonuses = []; startWave(); }
         function resetGame() { initGame(); }
         function startWave() { 
-            // Düşman sayısını artırdık
-            toSpawn = 10 + Math.floor(wave * 2); 
-            // Saldırı hızı
-            spawnRate = Math.max(15, 55 - wave*2);
+            toSpawn = 8 + Math.floor(wave * 2); 
+            spawnRate = Math.max(20, 60 - wave*2);
             updateTheme(); 
         }
 
@@ -722,11 +722,11 @@
                     enemies.push(new Enemy(wave)); toSpawn--; spawnTimer = 0;
                 }
             } else if(enemies.length === 0) {
-                wave++; gold += 80; startWave(); // Dalga sonu az ödül
+                wave++; gold += 80; startWave(); 
             }
             
-            if(Math.random() < 0.004 * wave) meteors.push(new Meteor());
-            if(Math.random() < 0.003 && bonuses.length < 2) bonuses.push(new Bonus());
+            if(Math.random() < 0.003 * wave) meteors.push(new Meteor());
+            if(Math.random() < 0.004 && bonuses.length < 2) bonuses.push(new Bonus());
 
             for(let i=enemies.length-1; i>=0; i--) {
                 if(enemies[i].update()) {
@@ -763,7 +763,7 @@
                     const dist = Math.hypot(dx, dy);
                     if(dist < p.speed) {
                          enemies.forEach(e => {
-                             if(Math.hypot(e.x - p.x, e.y - p.y) < 70) {
+                             if(Math.hypot(e.x - p.x, e.y - p.y) < 50) {
                                  e.hp -= p.damage;
                                  particles.push(new Particle(e.x, e.y, p.type === 'missile' ? '#f00' : '#0ff'));
                                  if(e.hp <= 0 && !e.dead) {
@@ -793,27 +793,17 @@
 
         function checkPlacement(x, y) {
             if(gold < TOWERS[selectedType].cost) return false;
-            if(Math.hypot(basePos.x - x, basePos.y - y) < 150) return false;
-            for(const t of towers) if(Math.hypot(t.x - x, t.y - y) < 100) return false;
+            if(Math.hypot(basePos.x - x, basePos.y - y) < 100) return false;
+            for(const t of towers) if(Math.hypot(t.x - x, t.y - y) < 60) return false;
             for(let i=0; i<pathPoints.length-1; i++) {
-                if(distToSegment({x,y}, pathPoints[i], pathPoints[i+1]) < 90) return false;
+                if(distToSegment({x,y}, pathPoints[i], pathPoints[i+1]) < 60) return false;
             }
             return true;
         }
 
         function drawUI() {
-            if(gameState === 'playing' && mousePos.x > 0) {
-                const isValid = checkPlacement(mousePos.x, mousePos.y);
-                const range = TOWERS[selectedType].range;
-                const theme = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
-                
-                ctx.save(); ctx.translate(mousePos.x, mousePos.y);
-                ctx.beginPath(); ctx.arc(0, 0, range, 0, Math.PI*2);
-                ctx.fillStyle = isValid ? 'rgba(0, 255, 136, 0.05)' : 'rgba(255, 0, 0, 0.05)'; ctx.fill();
-                ctx.strokeStyle = isValid ? theme : 'rgba(255, 0, 0, 0.6)';
-                ctx.lineWidth = 2; ctx.setLineDash([8, 6]); ctx.stroke();
-                ctx.restore();
-            }
+            // Mobil için hayalet kuleyi sadece kule seçiliyken göster
+            // Mouse/Touch eventlerinde handled
         }
 
         function draw() {
@@ -829,29 +819,29 @@
             const rockImg = images['rock'];
             decorations.forEach(d => {
                 if(d.type === 'rock' && rockImg) {
-                     const s = 90 * d.s; ctx.drawImage(rockImg, d.x - s/2, d.y - s/2, s, s);
+                     const s = 60 * d.s; ctx.drawImage(rockImg, d.x - s/2, d.y - s/2, s, s);
                 } else {
-                     ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.ellipse(d.x, d.y, 40*d.s, 25*d.s, 0, 0, Math.PI*2); ctx.fill();
+                     ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.ellipse(d.x, d.y, 30*d.s, 20*d.s, 0, 0, Math.PI*2); ctx.fill();
                 }
             });
             
             let pathColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
             
-            ctx.shadowBlur = 30; ctx.shadowColor = pathColor;
+            ctx.shadowBlur = 20; ctx.shadowColor = pathColor;
             ctx.beginPath(); ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
             for(let i=1; i<pathPoints.length; i++) ctx.lineTo(pathPoints[i].x, pathPoints[i].y);
-            ctx.lineWidth = 80; ctx.strokeStyle = 'rgba(2, 10, 30, 0.8)'; ctx.stroke();
-            ctx.lineWidth = 12; ctx.strokeStyle = pathColor; ctx.setLineDash([30, 20]); ctx.lineDashOffset = -Date.now() / 8; ctx.stroke();
+            ctx.lineWidth = 60; ctx.strokeStyle = 'rgba(2, 10, 30, 0.8)'; ctx.stroke();
+            ctx.lineWidth = 8; ctx.strokeStyle = pathColor; ctx.setLineDash([20, 15]); ctx.lineDashOffset = -Date.now() / 8; ctx.stroke();
             ctx.setLineDash([]); ctx.shadowBlur = 0;
 
             bonuses.forEach(b => b.draw());
 
             const baseImg = images['base'];
             if(baseImg) {
-                const s = 200; ctx.shadowBlur = 50; ctx.shadowColor = pathColor;
+                const s = 150; ctx.shadowBlur = 40; ctx.shadowColor = pathColor;
                 ctx.drawImage(baseImg, basePos.x - s/2, basePos.y - s/2, s, s); ctx.shadowBlur = 0;
             } else {
-                ctx.fillStyle = pathColor; ctx.beginPath(); ctx.arc(basePos.x, basePos.y, 50, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = pathColor; ctx.beginPath(); ctx.arc(basePos.x, basePos.y, 40, 0, Math.PI*2); ctx.fill();
             }
 
             towers.forEach(t => t.draw());
@@ -865,18 +855,18 @@
                     const dist = Math.hypot(p.target.x - p.x, p.target.y - p.y);
                     ctx.translate(p.x, p.y); ctx.rotate(angle + Math.PI/2);
                     const beamImg = images['beam'];
-                    if(beamImg && p.type !== 'sniper') { ctx.drawImage(beamImg, -30, 0, 60, -dist); } 
+                    if(beamImg && p.type !== 'sniper') { ctx.drawImage(beamImg, -20, 0, 40, -dist); } 
                     else { 
                         ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0, -dist); 
-                        ctx.lineWidth = p.type === 'sniper' ? 2 : 8; 
+                        ctx.lineWidth = p.type === 'sniper' ? 2 : 6; 
                         ctx.strokeStyle = p.type === 'sniper' ? '#0f0' : pathColor; 
-                        ctx.shadowBlur = 20; ctx.shadowColor = ctx.strokeStyle; ctx.stroke(); 
+                        ctx.shadowBlur = 15; ctx.shadowColor = ctx.strokeStyle; ctx.stroke(); 
                     }
                     ctx.restore();
                 } else {
                     ctx.fillStyle = p.type === 'missile' ? '#ff4444' : pathColor;
-                    ctx.shadowBlur = 20; ctx.shadowColor = ctx.fillStyle;
-                    ctx.beginPath(); ctx.arc(p.x, p.y, 10, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+                    ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 8, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
                 }
             });
             particles.forEach(p => p.draw());
@@ -908,17 +898,22 @@
             return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
         }
 
+        // Mobil uyumlu input
         function handleInput(e) {
             if(gameState !== 'playing') return;
+            // UI elementlerine basıldıysa engelleme (canvas altında olduğu için)
+            if(e.target.closest('.bottom-panel') || e.target.closest('.top-bar')) return;
+            
             e.preventDefault();
             let cx, cy;
             if(e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; } else { cx = e.clientX; cy = e.clientY; }
-            if(e.target.closest('.bottom-panel') || e.target.closest('.top-bar')) return;
 
+            // Canvas koordinatlarına çevir
             const rect = canvas.getBoundingClientRect();
-            const x = cx - rect.left; const y = cy - rect.top;
+            const x = (cx - rect.left) * (canvas.width / rect.width);
+            const y = (cy - rect.top) * (canvas.height / rect.height);
             
-            // Bonus Toplama (25 altın)
+            // Bonus Toplama
             for(let i=0; i<bonuses.length; i++) {
                 const b = bonuses[i];
                 if(Math.hypot(x - b.x, y - b.y) < 40) {
@@ -938,11 +933,6 @@
                 for(let k=0; k<10; k++) particles.push(new Particle(x, y, '#00ff9d'));
             }
         }
-
-        canvas.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            mousePos.x = e.clientX - rect.left; mousePos.y = e.clientY - rect.top;
-        });
 
         canvas.addEventListener('mousedown', handleInput);
         canvas.addEventListener('touchstart', handleInput, {passive: false});
