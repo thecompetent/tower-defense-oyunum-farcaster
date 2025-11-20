@@ -3,13 +3,12 @@
     "header": "eyJmaWQiOjU4MDcwMiwidHlwZSI6ImF1dGgiLCJrZXkiOiIweDY1Y0Y1RTAzNzg5NWJDYzI0NjA1QTA2N0FFOUIwNTU2YUUzRjI4QzMifQ",
     "payload": "eyJkb21haW4iOiJ0b3dlci1kZWZlbnNlLW95dW51bS1mYXJjYXN0ZXIudmVyY2VsLmFwcCJ9",
     "signature": "jr7D5IJTeyF8kTdTrDLFINVFyABligXHkB69CzXC0AZVfbS4r6TqKni3xJZD9EMbEn/mrp5kSoWYkDnWnsgmMhw="
-  }
-}
+  },
   "frame": {
     "version": "1",
     "name": "Space Defense",
     "iconUrl": "https://raw.githubusercontent.com/thecompetent/tower-defense-oyunum-farcaster/main/detail-crystal-large.png",
-    "homeUrl": "https://tower-defense-oyunum-farcaster.vercel.app/",
+    "homeUrl": "https://tower-defense-oyunum-farcaster.vercel.app",
     "imageUrl": "https://raw.githubusercontent.com/thecompetent/tower-defense-oyunum-farcaster/main/detail-crystal-large.png",
     "buttonTitle": "Play Now",
     "splashImageUrl": "https://raw.githubusercontent.com/thecompetent/tower-defense-oyunum-farcaster/main/detail-crystal-large.png",
