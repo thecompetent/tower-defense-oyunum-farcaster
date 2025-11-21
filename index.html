@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Farcaster Space Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Farcaster SDK -->
+    <!-- ÖNEMLİ: Farcaster Frame SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@farcaster/frame-sdk/dist/index.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;600&display=swap');
@@ -18,89 +18,56 @@
             touch-action: none;
             margin: 0; padding: 0;
             user-select: none; -webkit-user-select: none;
-            cursor: pointer; /* Mobilde dokunma imleci */
+            cursor: crosshair;
             transition: background-color 2s, filter 2s;
-            display: flex;
-            flex-direction: column;
-            height: 100vh; /* Tam ekran yüksekliği */
+            display: flex; flex-direction: column; height: 100vh;
         }
         
-        /* Canvas kapsayıcısı - Ekranın ortasına ve tam boyut */
+        /* Canvas Kapsayıcı */
         #gameContainer {
-            flex: 1;
-            position: relative;
-            width: 100%;
-            max-width: 600px; /* Çok geniş ekranlarda sınırlama */
-            margin: 0 auto;
-            overflow: hidden;
+            flex: 1; position: relative; width: 100%; max-width: 600px; margin: 0 auto; overflow: hidden;
         }
+        canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 
-        canvas { 
-            display: block; 
-            width: 100%; 
-            height: 100%; 
-            touch-action: none; 
-        }
-
-        .ui-layer { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            pointer-events: none; 
-        }
+        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         
-        :root {
-            --theme-color: #00f3ff;
-            --theme-shadow: rgba(0, 243, 255, 0.3);
-        }
+        :root { --theme-color: #00f3ff; --theme-shadow: rgba(0, 243, 255, 0.3); }
 
-        /* HUD - Mobil için daha kompakt */
+        /* HUD */
         .top-bar {
-            background: rgba(2, 6, 23, 0.9);
-            padding: 8px 15px;
+            background: rgba(2, 6, 23, 0.9); padding: 8px 15px;
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 2px solid var(--theme-color);
             box-shadow: 0 0 15px var(--theme-shadow);
-            backdrop-filter: blur(8px);
-            font-family: 'Orbitron', sans-serif;
-            transition: all 1s;
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
+            backdrop-filter: blur(8px); font-family: 'Orbitron', sans-serif;
+            transition: all 1s; width: 100%; max-width: 600px; margin: 0 auto;
             position: absolute; top: 0; left: 0; right: 0; z-index: 50;
         }
         .stat-box { display: flex; flex-direction: column; align-items: center; }
         .stat-label { font-size: 9px; color: var(--theme-color); letter-spacing: 1px; text-transform: uppercase; }
         .stat-value { font-size: 16px; font-weight: 900; color: #fff; text-shadow: 0 0 8px var(--theme-color); }
 
-        /* Kule Paneli - Alt kısma sabit */
+        /* Panel */
         .bottom-panel {
-            position: absolute; bottom: 10px; left: 50%;
-            transform: translateX(-50%);
-            background: rgba(2, 6, 23, 0.95);
-            padding: 8px 15px;
-            border-radius: 20px;
+            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+            background: rgba(2, 6, 23, 0.95); padding: 8px 15px; border-radius: 20px;
             display: flex; gap: 8px; pointer-events: auto;
             border: 1px solid var(--theme-color);
             box-shadow: 0 0 20px var(--theme-shadow);
-            backdrop-filter: blur(12px);
-            z-index: 50;
-            width: 95%; /* Mobilde genişlik */
-            max-width: 500px;
-            justify-content: space-around;
+            backdrop-filter: blur(12px); z-index: 50;
+            width: 95%; max-width: 500px; justify-content: space-around;
         }
         
         .tower-card {
-            width: 65px; height: 90px; /* Mobilde biraz daha küçük */
+            width: 65px; height: 90px;
             background: linear-gradient(180deg, #0f172a, #020617);
-            border: 1px solid #1e293b;
-            border-radius: 10px;
+            border: 1px solid #1e293b; border-radius: 10px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             cursor: pointer; transition: all 0.2s; position: relative;
         }
         .tower-card.selected {
-            border-color: #00ff9d;
-            background: linear-gradient(180deg, #064e3b, #020617);
-            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
-            transform: translateY(-5px);
+            border-color: #00ff9d; background: linear-gradient(180deg, #064e3b, #020617);
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3); transform: translateY(-5px);
         }
         
         .icon-stack { position: relative; width: 40px; height: 40px; margin-bottom: 4px; }
@@ -108,7 +75,7 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
         }
-        .tower-name { font-size: 8px; color: #94a3b8; font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tower-name { font-size: 8px; color: #94a3b8; font-family: 'Orbitron', sans-serif; text-transform: uppercase; }
         .tower-cost { font-size: 10px; color: #fbbf24; font-weight: bold; }
 
         /* Bildirimler */
@@ -119,7 +86,6 @@
             opacity: 0; transition: opacity 0.5s; z-index: 60; width: 100%; text-align: center;
         }
 
-        /* Dalga Uyarıları */
         .wave-warning {
             position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
             font-family: 'Orbitron', sans-serif; text-align: center; pointer-events: none;
@@ -140,11 +106,9 @@
         }
         .space-btn {
             background: linear-gradient(90deg, var(--theme-color), #0066ff);
-            color: #fff; border: none;
-            padding: 14px 40px; font-size: 18px; font-family: 'Orbitron', sans-serif; font-weight: 900;
+            color: #fff; border: none; padding: 14px 40px; font-size: 18px; font-family: 'Orbitron', sans-serif; font-weight: 900;
             cursor: pointer; margin-top: 20px; clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
-            box-shadow: 0 0 25px var(--theme-shadow);
-            text-transform: uppercase; letter-spacing: 2px; transition: all 0.2s;
+            box-shadow: 0 0 25px var(--theme-shadow); text-transform: uppercase; letter-spacing: 2px; transition: all 0.2s;
         }
         .space-btn:hover { background: #fff; color: #000; box-shadow: 0 0 40px var(--theme-color); }
 
@@ -156,7 +120,6 @@
         }
         @keyframes pulse { from { opacity: 0.6; } to { opacity: 1; } }
         
-        /* Atmosfer Efektleri */
         .danger-bg {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 10; opacity: 0; transition: opacity 2s;
@@ -167,9 +130,7 @@
             animation: toxic-pulse 2s infinite;
         }
         @keyframes toxic-pulse {
-            0% { box-shadow: inset 0 0 20px #0f0; }
-            50% { box-shadow: inset 0 0 100px #0f0; }
-            100% { box-shadow: inset 0 0 20px #0f0; }
+            0% { box-shadow: inset 0 0 20px #0f0; } 50% { box-shadow: inset 0 0 100px #0f0; } 100% { box-shadow: inset 0 0 20px #0f0; }
         }
     </style>
 </head>
@@ -185,7 +146,6 @@
 
         <div id="bonusNotif" class="notification">+25 ENERJİ!</div>
         
-        <!-- Uyarı Kutusu -->
         <div id="waveWarning" class="wave-warning">
             <div class="warning-title" id="warnTitle">DALGA 1</div>
             <div class="warning-sub" id="warnSub">DÜŞMANLAR YAKLAŞIYOR</div>
@@ -193,52 +153,27 @@
 
         <div class="ui-layer" id="uiLayer">
             <div class="top-bar">
-                <div class="stat-box">
-                    <span class="stat-label">KALKAN</span>
-                    <span class="stat-value" id="lives" style="color: #ef4444;">100%</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">DALGA</span>
-                    <span class="stat-value" id="wave">1</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">ENERJİ</span>
-                    <span class="stat-value" id="gold" style="color: #fbbf24;">150</span>
-                </div>
+                <div class="stat-box"><span class="stat-label">KALKAN</span><span class="stat-value" id="lives" style="color: #ef4444;">100%</span></div>
+                <div class="stat-box"><span class="stat-label">DALGA</span><span class="stat-value" id="wave">1</span></div>
+                <div class="stat-box"><span class="stat-label">ENERJİ</span><span class="stat-value" id="gold" style="color: #fbbf24;">150</span></div>
             </div>
 
             <div class="bottom-panel">
                 <div class="tower-card selected" onclick="selectTower('archer')" id="btn-archer">
-                    <div class="icon-stack">
-                        <img id="img-archer-base" src="" alt="Base">
-                        <img id="img-archer-top" src="" alt="Top">
-                    </div>
-                    <span class="tower-name">Plazma</span>
-                    <span class="tower-cost">100</span>
+                    <div class="icon-stack"><img id="img-archer-base" src="" alt="Base"><img id="img-archer-top" src="" alt="Top"></div>
+                    <span class="tower-name">Plazma</span><span class="tower-cost">100</span>
                 </div>
                 <div class="tower-card" onclick="selectTower('cannon')" id="btn-cannon">
-                    <div class="icon-stack">
-                        <img id="img-cannon-base" src="" alt="Base">
-                        <img id="img-cannon-top" src="" alt="Top">
-                    </div>
-                    <span class="tower-name">Füze</span>
-                    <span class="tower-cost">200</span>
+                    <div class="icon-stack"><img id="img-cannon-base" src="" alt="Base"><img id="img-cannon-top" src="" alt="Top"></div>
+                    <span class="tower-name">Füze</span><span class="tower-cost">200</span>
                 </div>
                 <div class="tower-card" onclick="selectTower('sniper')" id="btn-sniper">
-                    <div class="icon-stack">
-                        <img id="img-sniper-base" src="" alt="Base">
-                        <img id="img-sniper-top" src="" alt="Top">
-                    </div>
-                    <span class="tower-name">İyon</span>
-                    <span class="tower-cost">300</span>
+                    <div class="icon-stack"><img id="img-sniper-base" src="" alt="Base"><img id="img-sniper-top" src="" alt="Top"></div>
+                    <span class="tower-name">İyon</span><span class="tower-cost">300</span>
                 </div>
                  <div class="tower-card" onclick="selectTower('magic')" id="btn-magic">
-                    <div class="icon-stack">
-                        <img id="img-magic-base" src="" alt="Base">
-                        <img id="img-magic-top" src="" alt="Top">
-                    </div>
-                    <span class="tower-name">Prizma</span>
-                    <span class="tower-cost">450</span>
+                    <div class="icon-stack"><img id="img-magic-base" src="" alt="Base"><img id="img-magic-top" src="" alt="Top"></div>
+                    <span class="tower-name">Prizma</span><span class="tower-cost">450</span>
                 </div>
             </div>
         </div>
@@ -300,7 +235,8 @@
             ['archer', 'cannon', 'sniper', 'magic'].forEach(t => updateBtn(t));
             loadImages();
             
-            // SDK Ready
+            // --- FARCASTER SDK READY SIGNAL ---
+            // Bu kısım çok önemli! Farcaster'a uygulamanın hazır olduğunu bildirir.
             setTimeout(() => {
                 if (window.farcaster && window.farcaster.sdk) {
                     window.farcaster.sdk.actions.ready();
@@ -346,6 +282,7 @@
         function startGameUI() {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('startScreen').style.display = 'flex';
+            // Tekrar dene (Garanti olsun)
             if (window.farcaster && window.farcaster.sdk) window.farcaster.sdk.actions.ready();
         }
 
@@ -356,7 +293,7 @@
         let gold = 150;
         let lives = 20;
         let wave = 1;
-        const TILE_SIZE = 80; // Mobilde daha uygun
+        const TILE_SIZE = 80; 
         
         let gridW, gridH;
         let pathPoints = [];
@@ -407,7 +344,6 @@
             gridH = Math.ceil(canvas.height / TILE_SIZE);
             
             pathPoints = [];
-            // Dikey ekran için optimize edilmiş yol (Mobil)
             const midX = canvas.width / 2;
             
             pathPoints.push({x: midX - 100, y: 0});
@@ -418,7 +354,7 @@
             pathPoints.push({x: midX - 80, y: canvas.height * 0.8});
             pathPoints.push({x: midX, y: canvas.height * 0.8});
 
-            basePos = { x: midX, y: canvas.height * 0.85 }; // Üs en altta ortada
+            basePos = { x: midX, y: canvas.height * 0.85 };
 
             decorations = [];
             for(let i=0; i<10; i++) { 
@@ -433,14 +369,15 @@
             }
         }
 
-        // ... ZORLUK VE TEMA (Önceki kodla aynı mantık) ...
         function updateTheme() {
             const root = document.documentElement;
             const bgRed = document.getElementById('bgRed');
             const bgToxic = document.getElementById('bgToxic');
             
-            let color = '#00f3ff'; let shadow = 'rgba(0, 243, 255, 0.2)';
-            let title = "DALGA " + wave; let sub = "HAZIR OL";
+            let color = '#00f3ff'; 
+            let shadow = 'rgba(0, 243, 255, 0.2)';
+            let title = "DALGA " + wave;
+            let sub = "HAZIR OL";
             
             bgRed.style.opacity = 0; bgToxic.style.opacity = 0;
 
@@ -466,7 +403,7 @@
             t.innerText = title; s.innerText = sub;
             
             if(wave !== 1 && wave !== 5 && wave !== 10 && wave !== 15 && wave < 15) {
-                 t.style.fontSize = "1.5rem"; s.style.display = "none"; // Mobilde daha küçük
+                 t.style.fontSize = "1.5rem"; s.style.display = "none";
             } else {
                  t.style.fontSize = "2.5rem"; s.style.display = "block";
             }
@@ -501,7 +438,7 @@
                 if (isBoss) {
                     this.type = 'boss';
                     this.hp = (baseHp * 12) * multiplier; 
-                    this.speed = 0.5; // Mobilde daha yavaş
+                    this.speed = 0.5;
                     this.imgKey = 'ufo_b';
                 } else if (isFast) {
                     this.type = 'fast';
@@ -763,7 +700,7 @@
                     const dist = Math.hypot(dx, dy);
                     if(dist < p.speed) {
                          enemies.forEach(e => {
-                             if(Math.hypot(e.x - p.x, e.y - p.y) < 50) {
+                             if(Math.hypot(e.x - p.x, e.y - p.y) < 70) {
                                  e.hp -= p.damage;
                                  particles.push(new Particle(e.x, e.y, p.type === 'missile' ? '#f00' : '#0ff'));
                                  if(e.hp <= 0 && !e.dead) {
@@ -793,17 +730,27 @@
 
         function checkPlacement(x, y) {
             if(gold < TOWERS[selectedType].cost) return false;
-            if(Math.hypot(basePos.x - x, basePos.y - y) < 100) return false;
-            for(const t of towers) if(Math.hypot(t.x - x, t.y - y) < 60) return false;
+            if(Math.hypot(basePos.x - x, basePos.y - y) < 150) return false;
+            for(const t of towers) if(Math.hypot(t.x - x, t.y - y) < 100) return false;
             for(let i=0; i<pathPoints.length-1; i++) {
-                if(distToSegment({x,y}, pathPoints[i], pathPoints[i+1]) < 60) return false;
+                if(distToSegment({x,y}, pathPoints[i], pathPoints[i+1]) < 90) return false;
             }
             return true;
         }
 
         function drawUI() {
-            // Mobil için hayalet kuleyi sadece kule seçiliyken göster
-            // Mouse/Touch eventlerinde handled
+            if(gameState === 'playing' && mousePos.x > 0) {
+                const isValid = checkPlacement(mousePos.x, mousePos.y);
+                const range = TOWERS[selectedType].range;
+                const theme = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
+                
+                ctx.save(); ctx.translate(mousePos.x, mousePos.y);
+                ctx.beginPath(); ctx.arc(0, 0, range, 0, Math.PI*2);
+                ctx.fillStyle = isValid ? 'rgba(0, 255, 136, 0.05)' : 'rgba(255, 0, 0, 0.05)'; ctx.fill();
+                ctx.strokeStyle = isValid ? theme : 'rgba(255, 0, 0, 0.6)';
+                ctx.lineWidth = 2; ctx.setLineDash([8, 6]); ctx.stroke();
+                ctx.restore();
+            }
         }
 
         function draw() {
@@ -819,29 +766,29 @@
             const rockImg = images['rock'];
             decorations.forEach(d => {
                 if(d.type === 'rock' && rockImg) {
-                     const s = 60 * d.s; ctx.drawImage(rockImg, d.x - s/2, d.y - s/2, s, s);
+                     const s = 90 * d.s; ctx.drawImage(rockImg, d.x - s/2, d.y - s/2, s, s);
                 } else {
-                     ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.ellipse(d.x, d.y, 30*d.s, 20*d.s, 0, 0, Math.PI*2); ctx.fill();
+                     ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.ellipse(d.x, d.y, 40*d.s, 25*d.s, 0, 0, Math.PI*2); ctx.fill();
                 }
             });
             
             let pathColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
             
-            ctx.shadowBlur = 20; ctx.shadowColor = pathColor;
+            ctx.shadowBlur = 30; ctx.shadowColor = pathColor;
             ctx.beginPath(); ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
             for(let i=1; i<pathPoints.length; i++) ctx.lineTo(pathPoints[i].x, pathPoints[i].y);
-            ctx.lineWidth = 60; ctx.strokeStyle = 'rgba(2, 10, 30, 0.8)'; ctx.stroke();
-            ctx.lineWidth = 8; ctx.strokeStyle = pathColor; ctx.setLineDash([20, 15]); ctx.lineDashOffset = -Date.now() / 8; ctx.stroke();
+            ctx.lineWidth = 80; ctx.strokeStyle = 'rgba(2, 10, 30, 0.8)'; ctx.stroke();
+            ctx.lineWidth = 12; ctx.strokeStyle = pathColor; ctx.setLineDash([30, 20]); ctx.lineDashOffset = -Date.now() / 8; ctx.stroke();
             ctx.setLineDash([]); ctx.shadowBlur = 0;
 
             bonuses.forEach(b => b.draw());
 
             const baseImg = images['base'];
             if(baseImg) {
-                const s = 150; ctx.shadowBlur = 40; ctx.shadowColor = pathColor;
+                const s = 200; ctx.shadowBlur = 50; ctx.shadowColor = pathColor;
                 ctx.drawImage(baseImg, basePos.x - s/2, basePos.y - s/2, s, s); ctx.shadowBlur = 0;
             } else {
-                ctx.fillStyle = pathColor; ctx.beginPath(); ctx.arc(basePos.x, basePos.y, 40, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = pathColor; ctx.beginPath(); ctx.arc(basePos.x, basePos.y, 50, 0, Math.PI*2); ctx.fill();
             }
 
             towers.forEach(t => t.draw());
@@ -855,18 +802,18 @@
                     const dist = Math.hypot(p.target.x - p.x, p.target.y - p.y);
                     ctx.translate(p.x, p.y); ctx.rotate(angle + Math.PI/2);
                     const beamImg = images['beam'];
-                    if(beamImg && p.type !== 'sniper') { ctx.drawImage(beamImg, -20, 0, 40, -dist); } 
+                    if(beamImg && p.type !== 'sniper') { ctx.drawImage(beamImg, -30, 0, 60, -dist); } 
                     else { 
                         ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0, -dist); 
-                        ctx.lineWidth = p.type === 'sniper' ? 2 : 6; 
+                        ctx.lineWidth = p.type === 'sniper' ? 2 : 8; 
                         ctx.strokeStyle = p.type === 'sniper' ? '#0f0' : pathColor; 
-                        ctx.shadowBlur = 15; ctx.shadowColor = ctx.strokeStyle; ctx.stroke(); 
+                        ctx.shadowBlur = 20; ctx.shadowColor = ctx.strokeStyle; ctx.stroke(); 
                     }
                     ctx.restore();
                 } else {
                     ctx.fillStyle = p.type === 'missile' ? '#ff4444' : pathColor;
-                    ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
-                    ctx.beginPath(); ctx.arc(p.x, p.y, 8, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+                    ctx.shadowBlur = 20; ctx.shadowColor = ctx.fillStyle;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 10, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
                 }
             });
             particles.forEach(p => p.draw());
@@ -898,22 +845,17 @@
             return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
         }
 
-        // Mobil uyumlu input
         function handleInput(e) {
             if(gameState !== 'playing') return;
-            // UI elementlerine basıldıysa engelleme (canvas altında olduğu için)
-            if(e.target.closest('.bottom-panel') || e.target.closest('.top-bar')) return;
-            
             e.preventDefault();
             let cx, cy;
             if(e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; } else { cx = e.clientX; cy = e.clientY; }
+            if(e.target.closest('.bottom-panel') || e.target.closest('.top-bar')) return;
 
-            // Canvas koordinatlarına çevir
             const rect = canvas.getBoundingClientRect();
-            const x = (cx - rect.left) * (canvas.width / rect.width);
-            const y = (cy - rect.top) * (canvas.height / rect.height);
+            const x = cx - rect.left; const y = cy - rect.top;
             
-            // Bonus Toplama
+            // Bonus Toplama (25 altın)
             for(let i=0; i<bonuses.length; i++) {
                 const b = bonuses[i];
                 if(Math.hypot(x - b.x, y - b.y) < 40) {
@@ -933,6 +875,11 @@
                 for(let k=0; k<10; k++) particles.push(new Particle(x, y, '#00ff9d'));
             }
         }
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mousePos.x = e.clientX - rect.left; mousePos.y = e.clientY - rect.top;
+        });
 
         canvas.addEventListener('mousedown', handleInput);
         canvas.addEventListener('touchstart', handleInput, {passive: false});
