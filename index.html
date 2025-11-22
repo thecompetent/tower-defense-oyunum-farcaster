@@ -4,9 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Farcaster Space Defense</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- ÖNEMLİ: Farcaster Frame SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@farcaster/frame-sdk/dist/index.min.js"></script>
+    
+    <!-- FARCASTER SDK (MODERN YÖNTEM) -->
+    <!-- Bu script, oyunu Farcaster'a bağlar ve yükleme ekranını kapatır -->
+    <script type="module">
+        import sdk from 'https://esm.sh/@farcaster/frame-sdk';
+        
+        // Oyun yüklendiğinde Farcaster'a haber ver
+        window.onload = () => {
+            // Bir saniye gecikme, oyunun tamamen oturduğundan emin olmak için
+            setTimeout(() => {
+                console.log("Farcaster'a hazır sinyali gönderiliyor...");
+                sdk.actions.ready(); 
+                
+                // Yükleme yazısını kaldır
+                const loadEl = document.getElementById('loading');
+                if(loadEl) loadEl.style.display = 'none';
+                
+                const startEl = document.getElementById('startScreen');
+                if(startEl) startEl.style.display = 'flex';
+            }, 500);
+        };
+    </script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;600&display=swap');
 
@@ -234,14 +257,6 @@
         window.onload = function() {
             ['archer', 'cannon', 'sniper', 'magic'].forEach(t => updateBtn(t));
             loadImages();
-            
-            // --- FARCASTER SDK READY SIGNAL ---
-            // Bu kısım çok önemli! Farcaster'a uygulamanın hazır olduğunu bildirir.
-            setTimeout(() => {
-                if (window.farcaster && window.farcaster.sdk) {
-                    window.farcaster.sdk.actions.ready();
-                }
-            }, 1000);
         };
 
         const images = {};
@@ -280,10 +295,9 @@
         }
         
         function startGameUI() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('startScreen').style.display = 'flex';
-            // Tekrar dene (Garanti olsun)
-            if (window.farcaster && window.farcaster.sdk) window.farcaster.sdk.actions.ready();
+            // SDK READY ÇAĞRISI (Burada olmalı)
+            // Oyun tamamen yüklenmiş sayılır
+            console.log("Oyun yüklendi, Farcaster ready çağrısı yapılıyor...");
         }
 
         const canvas = document.getElementById('gameCanvas');
@@ -555,7 +569,7 @@
                 this.x = Math.random() * canvas.width; this.y = -100;
                 this.tx = Math.random() * canvas.width; this.ty = Math.random() * canvas.height;
                 const angle = Math.atan2(this.ty - this.y, this.tx - this.x);
-                this.vx = Math.cos(angle) * 12; this.vy = Math.sin(angle) * 12;
+                this.vx = Math.cos(angle) * 18; this.vy = Math.sin(angle) * 18;
                 this.active = true;
             }
             update() {
@@ -575,7 +589,7 @@
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 ctx.rotate(Math.atan2(this.vy, this.vx) - Math.PI/2);
-                const grad = ctx.createLinearGradient(0, 0, 0, -60);
+                const grad = ctx.createLinearGradient(0, 0, 0, -100);
                 grad.addColorStop(0, '#fff'); grad.addColorStop(0.4, '#ff5500'); grad.addColorStop(1, 'transparent');
                 ctx.fillStyle = grad;
                 ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(6, -60); ctx.lineTo(-6, -60); ctx.fill();
@@ -645,8 +659,10 @@
         function resetVars() { gold = 200; lives = 20; wave = 1; towers = []; enemies = []; projectiles = []; particles = []; meteors = []; bonuses = []; startWave(); }
         function resetGame() { initGame(); }
         function startWave() { 
-            toSpawn = 8 + Math.floor(wave * 2); 
-            spawnRate = Math.max(20, 60 - wave*2);
+            // Düşman sayısını artırdık
+            toSpawn = 10 + Math.floor(wave * 2); 
+            // Saldırı hızı
+            spawnRate = Math.max(15, 55 - wave*2);
             updateTheme(); 
         }
 
