@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Farcaster Space Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Farcaster SDK -->
     <script type="module">
         import sdk from 'https://esm.sh/@farcaster/frame-sdk';
         window.onload = () => {
@@ -33,7 +34,7 @@
         
         #gameContainer {
             flex: 1; position: relative; width: 100%; height: 100%; margin: 0 auto; overflow: hidden;
-            /* Neon Yol Görseli Arka Plan Olarak Ayarlandı */
+            /* Neon Yol Görseli */
             background-image: url('https://raw.githubusercontent.com/thecompetent/tower-defense-oyunum-farcaster/main/image_7a05f5.png');
             background-size: 100% 100%;
             background-position: center;
@@ -41,7 +42,6 @@
         }
         
         canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-
         .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         
         :root { --theme-color: #00f3ff; --theme-shadow: rgba(0, 243, 255, 0.3); }
@@ -280,6 +280,7 @@
         function startGameUI() {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('startScreen').style.display = 'flex';
+            if (window.farcaster && window.farcaster.sdk) window.farcaster.sdk.actions.ready();
         }
 
         const canvas = document.getElementById('gameCanvas');
@@ -321,7 +322,8 @@
         }
         window.addEventListener('resize', resize);
 
-        // HARİTA VE YOL AYARLARI (YENİ GÖRSELE GÖRE)
+        // HARİTA VE YOL AYARLARI (NEON GÖRSELİNE GÖRE - YENİ)
+        // Bu koordinatlar attığın resimdeki neon yola tam oturacak şekilde ayarlandı.
         function initMap() {
             gridW = Math.ceil(canvas.width / TILE_SIZE);
             gridH = Math.ceil(canvas.height / TILE_SIZE);
@@ -330,16 +332,16 @@
             const w = canvas.width;
             const h = canvas.height;
 
-            // Neon yol görseline göre ayarlanmış yol noktaları
-            pathPoints.push({x: w * 0.28, y: 0}); 
-            pathPoints.push({x: w * 0.28, y: h * 0.22}); 
-            pathPoints.push({x: w * 0.65, y: h * 0.22}); 
-            pathPoints.push({x: w * 0.65, y: h * 0.48}); 
-            pathPoints.push({x: w * 0.32, y: h * 0.48});
-            pathPoints.push({x: w * 0.32, y: h * 0.72});
-            pathPoints.push({x: w * 0.50, y: h * 0.72}); 
+            // Neon yol resmine göre TAM kooradinatlar (Oran olarak)
+            pathPoints.push({x: w * 0.28, y: 0});         // 1. Giriş (Yukarıdan)
+            pathPoints.push({x: w * 0.28, y: h * 0.20});  // 2. İlk Viraj (Aşağı in)
+            pathPoints.push({x: w * 0.66, y: h * 0.20});  // 3. Sağa Git
+            pathPoints.push({x: w * 0.66, y: h * 0.47});  // 4. Aşağı İn
+            pathPoints.push({x: w * 0.33, y: h * 0.47});  // 5. Sola Git
+            pathPoints.push({x: w * 0.33, y: h * 0.73});  // 6. Aşağı İn
+            pathPoints.push({x: w * 0.50, y: h * 0.73});  // 7. Sağa Git (Üsse)
 
-            basePos = { x: w * 0.50, y: h * 0.85 }; // Üs en altta ortada
+            basePos = { x: w * 0.50, y: h * 0.82 }; // Üs (Aşağıda ortada, mavi yuvarlak)
         }
 
         function updateTheme() {
