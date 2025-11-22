@@ -4,32 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Farcaster Space Defense</title>
-    
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- FARCASTER SDK (MODERN YÖNTEM) -->
-    <!-- Bu script, oyunu Farcaster'a bağlar ve yükleme ekranını kapatır -->
     <script type="module">
         import sdk from 'https://esm.sh/@farcaster/frame-sdk';
-        
-        // Oyun yüklendiğinde Farcaster'a haber ver
         window.onload = () => {
-            // Bir saniye gecikme, oyunun tamamen oturduğundan emin olmak için
             setTimeout(() => {
-                console.log("Farcaster'a hazır sinyali gönderiliyor...");
-                sdk.actions.ready(); 
-                
-                // Yükleme yazısını kaldır
-                const loadEl = document.getElementById('loading');
-                if(loadEl) loadEl.style.display = 'none';
-                
-                const startEl = document.getElementById('startScreen');
-                if(startEl) startEl.style.display = 'flex';
-            }, 500);
+                console.log("Farcaster ready...");
+                try { sdk.actions.ready(); } catch(e) { console.log("SDK Error:", e); }
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('startScreen').style.display = 'flex';
+            }, 1000);
         };
     </script>
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;600&display=swap');
 
@@ -42,21 +28,24 @@
             margin: 0; padding: 0;
             user-select: none; -webkit-user-select: none;
             cursor: crosshair;
-            transition: background-color 2s, filter 2s;
             display: flex; flex-direction: column; height: 100vh;
         }
         
-        /* Canvas Kapsayıcı */
         #gameContainer {
-            flex: 1; position: relative; width: 100%; max-width: 600px; margin: 0 auto; overflow: hidden;
+            flex: 1; position: relative; width: 100%; height: 100%; margin: 0 auto; overflow: hidden;
+            /* Neon Yol Görseli Arka Plan Olarak Ayarlandı */
+            background-image: url('https://raw.githubusercontent.com/thecompetent/tower-defense-oyunum-farcaster/main/image_7a05f5.png');
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
         }
+        
         canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 
         .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         
         :root { --theme-color: #00f3ff; --theme-shadow: rgba(0, 243, 255, 0.3); }
 
-        /* HUD */
         .top-bar {
             background: rgba(2, 6, 23, 0.9); padding: 8px 15px;
             display: flex; justify-content: space-between; align-items: center;
@@ -70,7 +59,6 @@
         .stat-label { font-size: 9px; color: var(--theme-color); letter-spacing: 1px; text-transform: uppercase; }
         .stat-value { font-size: 16px; font-weight: 900; color: #fff; text-shadow: 0 0 8px var(--theme-color); }
 
-        /* Panel */
         .bottom-panel {
             position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
             background: rgba(2, 6, 23, 0.95); padding: 8px 15px; border-radius: 20px;
@@ -101,7 +89,6 @@
         .tower-name { font-size: 8px; color: #94a3b8; font-family: 'Orbitron', sans-serif; text-transform: uppercase; }
         .tower-cost { font-size: 10px; color: #fbbf24; font-weight: bold; }
 
-        /* Bildirimler */
         .notification {
             position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
             font-family: 'Orbitron', sans-serif; color: #ffd700; font-size: 1.2rem;
@@ -120,7 +107,6 @@
         .warning-title { font-size: 2.5rem; font-weight: 900; color: var(--theme-color); text-shadow: 0 0 20px var(--theme-color); margin-bottom: 5px; }
         .warning-sub { font-size: 1rem; color: #fff; letter-spacing: 3px; text-transform: uppercase; }
 
-        /* Overlay */
         .overlay-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(1, 1, 5, 0.98); backdrop-filter: blur(15px);
@@ -218,9 +204,7 @@
         const REPO = 'https://raw.githubusercontent.com/thecompetent/tower-defense-oyunum-farcaster/main/';
 
         const ASSET_URLS = {
-            base: REPO + 'detail-crystal-large.png', 
-            rock: REPO + 'detail-rocks.png',
-            bonus: REPO + 'detail-crystal.png',
+            // Not: Arka plan CSS ile ayarlandı
             archer_base: REPO + 'tower-square-build-f.png', 
             archer_top: REPO + 'enemy-ufo-a-weapon.png', 
             cannon_base: REPO + 'tower-round-build-f.png', 
@@ -232,11 +216,11 @@
             ufo_normal: REPO + 'enemy-ufo-b.png',
             ufo_fast: REPO + 'enemy-ufo-c.png', 
             ufo_boss: REPO + 'enemy-ufo-c.png', 
-            beam: REPO + 'enemy-ufo-beam.png'
+            beam: REPO + 'enemy-ufo-beam.png',
+            bonus: REPO + 'detail-crystal.png'
         };
 
         const assets = {
-            env: { base: ASSET_URLS.base, rock: ASSET_URLS.rock, bonus: ASSET_URLS.bonus },
             towers: { 
                 archer: { base: ASSET_URLS.archer_base, top: ASSET_URLS.archer_top },
                 cannon: { base: ASSET_URLS.cannon_base, top: ASSET_URLS.cannon_top },
@@ -244,7 +228,8 @@
                 magic:  { base: ASSET_URLS.magic_base, top: ASSET_URLS.magic_top }
             },
             enemies: { normal: ASSET_URLS.ufo_normal, fast: ASSET_URLS.ufo_fast, boss: ASSET_URLS.ufo_boss },
-            effects: { beam: ASSET_URLS.beam }
+            effects: { beam: ASSET_URLS.beam },
+            env: { bonus: ASSET_URLS.bonus }
         };
 
         const updateBtn = (type) => {
@@ -265,13 +250,11 @@
 
         function loadImages() {
             const keys = [];
-            if(assets.env.base) keys.push({k:'base', u:assets.env.base});
-            if(assets.env.rock) keys.push({k:'rock', u:assets.env.rock});
-            if(assets.env.bonus) keys.push({k:'bonus', u:assets.env.bonus});
             if(assets.enemies.normal) keys.push({k:'ufo_n', u:assets.enemies.normal});
             if(assets.enemies.fast) keys.push({k:'ufo_f', u:assets.enemies.fast});
             if(assets.enemies.boss) keys.push({k:'ufo_b', u:assets.enemies.boss});
             if(assets.effects.beam) keys.push({k:'beam', u:assets.effects.beam});
+            if(assets.env.bonus) keys.push({k:'bonus', u:assets.env.bonus});
             
             ['archer', 'cannon', 'sniper', 'magic'].forEach(t => {
                 if(assets.towers[t].base) keys.push({k:t+'_b', u:assets.towers[t].base});
@@ -295,9 +278,8 @@
         }
         
         function startGameUI() {
-            // SDK READY ÇAĞRISI (Burada olmalı)
-            // Oyun tamamen yüklenmiş sayılır
-            console.log("Oyun yüklendi, Farcaster ready çağrısı yapılıyor...");
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex';
         }
 
         const canvas = document.getElementById('gameCanvas');
@@ -312,8 +294,7 @@
         let gridW, gridH;
         let pathPoints = [];
         let basePos = {x:0, y:0};
-        let stars = []; 
-        let decorations = []; 
+        let bonuses = []; 
         let mousePos = {x: -100, y: -100};
 
         const TOWERS = {
@@ -328,8 +309,6 @@
         let enemies = [];
         let projectiles = [];
         let particles = [];
-        let meteors = []; 
-        let bonuses = []; 
         let toSpawn = 0;
         let spawnTimer = 0;
         let spawnRate = 60;
@@ -339,48 +318,28 @@
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
             initMap();
-            initStars();
         }
         window.addEventListener('resize', resize);
 
-        function initStars() {
-            stars = [];
-            for(let i=0; i<50; i++) { 
-                stars.push({
-                    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
-                    size: Math.random() * 2 + 1, blink: Math.random() * 0.05
-                });
-            }
-        }
-
+        // HARİTA VE YOL AYARLARI (YENİ GÖRSELE GÖRE)
         function initMap() {
             gridW = Math.ceil(canvas.width / TILE_SIZE);
             gridH = Math.ceil(canvas.height / TILE_SIZE);
             
             pathPoints = [];
-            const midX = canvas.width / 2;
-            
-            pathPoints.push({x: midX - 100, y: 0});
-            pathPoints.push({x: midX - 100, y: canvas.height * 0.2});
-            pathPoints.push({x: midX + 100, y: canvas.height * 0.2});
-            pathPoints.push({x: midX + 100, y: canvas.height * 0.5});
-            pathPoints.push({x: midX - 80, y: canvas.height * 0.5});
-            pathPoints.push({x: midX - 80, y: canvas.height * 0.8});
-            pathPoints.push({x: midX, y: canvas.height * 0.8});
+            const w = canvas.width;
+            const h = canvas.height;
 
-            basePos = { x: midX, y: canvas.height * 0.85 };
+            // Neon yol görseline göre ayarlanmış yol noktaları
+            pathPoints.push({x: w * 0.28, y: 0}); 
+            pathPoints.push({x: w * 0.28, y: h * 0.22}); 
+            pathPoints.push({x: w * 0.65, y: h * 0.22}); 
+            pathPoints.push({x: w * 0.65, y: h * 0.48}); 
+            pathPoints.push({x: w * 0.32, y: h * 0.48});
+            pathPoints.push({x: w * 0.32, y: h * 0.72});
+            pathPoints.push({x: w * 0.50, y: h * 0.72}); 
 
-            decorations = [];
-            for(let i=0; i<10; i++) { 
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * canvas.height;
-                let safe = true;
-                if(Math.hypot(x - basePos.x, y - basePos.y) < 150) safe = false;
-                for(let j=0; j<pathPoints.length-1; j++) {
-                    if(distToSegment({x,y}, pathPoints[j], pathPoints[j+1]) < 80) safe = false;
-                }
-                if(safe) decorations.push({x, y, s: 0.6 + Math.random()*0.4, type: Math.random()>0.4 ? 'rock':'crater'});
-            }
+            basePos = { x: w * 0.50, y: h * 0.85 }; // Üs en altta ortada
         }
 
         function updateTheme() {
@@ -452,7 +411,7 @@
                 if (isBoss) {
                     this.type = 'boss';
                     this.hp = (baseHp * 12) * multiplier; 
-                    this.speed = 0.5;
+                    this.speed = 0.6;
                     this.imgKey = 'ufo_b';
                 } else if (isFast) {
                     this.type = 'fast';
@@ -500,7 +459,7 @@
                 
                 const img = images[this.imgKey];
                 if(img) {
-                    let size = 50; // Mobilde boyut
+                    let size = 50; 
                     if(this.type === 'boss') size = 90; 
                     ctx.drawImage(img, -size/2, -size/2, size, size);
                     if(this.type === 'boss' || wave >= 15) {
@@ -564,39 +523,6 @@
             }
         }
 
-        class Meteor {
-            constructor() {
-                this.x = Math.random() * canvas.width; this.y = -100;
-                this.tx = Math.random() * canvas.width; this.ty = Math.random() * canvas.height;
-                const angle = Math.atan2(this.ty - this.y, this.tx - this.x);
-                this.vx = Math.cos(angle) * 18; this.vy = Math.sin(angle) * 18;
-                this.active = true;
-            }
-            update() {
-                this.x += this.vx; this.y += this.vy;
-                if(this.y > this.ty) {
-                    this.active = false;
-                    enemies.forEach(e => {
-                        if(Math.hypot(e.x - this.x, e.y - this.y) < 100) {
-                            e.hp -= 100;
-                            if(e.hp <= 0 && !e.dead) { e.dead = true; gold += 15; }
-                        }
-                    });
-                    for(let i=0; i<20; i++) particles.push(new Particle(this.x, this.y, '#ffaa00'));
-                }
-            }
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate(Math.atan2(this.vy, this.vx) - Math.PI/2);
-                const grad = ctx.createLinearGradient(0, 0, 0, -100);
-                grad.addColorStop(0, '#fff'); grad.addColorStop(0.4, '#ff5500'); grad.addColorStop(1, 'transparent');
-                ctx.fillStyle = grad;
-                ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(6, -60); ctx.lineTo(-6, -60); ctx.fill();
-                ctx.restore();
-            }
-        }
-
         class Tower {
             constructor(x, y, type) {
                 this.x = x; this.y = y;
@@ -656,13 +582,11 @@
         }
 
         function initGame() { resize(); document.getElementById('startScreen').style.display = 'none'; document.getElementById('gameOverScreen').style.display = 'none'; resetVars(); gameState = 'playing'; loop(); }
-        function resetVars() { gold = 200; lives = 20; wave = 1; towers = []; enemies = []; projectiles = []; particles = []; meteors = []; bonuses = []; startWave(); }
+        function resetVars() { gold = 200; lives = 20; wave = 1; towers = []; enemies = []; projectiles = []; particles = []; bonuses = []; startWave(); }
         function resetGame() { initGame(); }
         function startWave() { 
-            // Düşman sayısını artırdık
-            toSpawn = 10 + Math.floor(wave * 2); 
-            // Saldırı hızı
-            spawnRate = Math.max(15, 55 - wave*2);
+            toSpawn = 8 + Math.floor(wave * 2); 
+            spawnRate = Math.max(20, 60 - wave*2);
             updateTheme(); 
         }
 
@@ -678,7 +602,6 @@
                 wave++; gold += 80; startWave(); 
             }
             
-            if(Math.random() < 0.003 * wave) meteors.push(new Meteor());
             if(Math.random() < 0.004 && bonuses.length < 2) bonuses.push(new Bonus());
 
             for(let i=enemies.length-1; i>=0; i--) {
@@ -716,7 +639,7 @@
                     const dist = Math.hypot(dx, dy);
                     if(dist < p.speed) {
                          enemies.forEach(e => {
-                             if(Math.hypot(e.x - p.x, e.y - p.y) < 70) {
+                             if(Math.hypot(e.x - p.x, e.y - p.y) < 50) {
                                  e.hp -= p.damage;
                                  particles.push(new Particle(e.x, e.y, p.type === 'missile' ? '#f00' : '#0ff'));
                                  if(e.hp <= 0 && !e.dead) {
@@ -735,7 +658,6 @@
                 }
             }
 
-            meteors.forEach((m, i) => { m.update(); if(!m.active) meteors.splice(i, 1); });
             for(let i=particles.length-1; i>=0; i--) { if(particles[i].update()) particles.splice(i, 1); }
 
             draw();
@@ -746,11 +668,15 @@
 
         function checkPlacement(x, y) {
             if(gold < TOWERS[selectedType].cost) return false;
-            if(Math.hypot(basePos.x - x, basePos.y - y) < 150) return false;
-            for(const t of towers) if(Math.hypot(t.x - x, t.y - y) < 100) return false;
+            
+            // Yola çok yakın mı? (Neon yol görseline göre)
             for(let i=0; i<pathPoints.length-1; i++) {
-                if(distToSegment({x,y}, pathPoints[i], pathPoints[i+1]) < 90) return false;
+                if(distToSegment({x,y}, pathPoints[i], pathPoints[i+1]) < 60) return false;
             }
+            
+            // Başka kule ile çakışıyor mu?
+            for(const t of towers) if(Math.hypot(t.x - x, t.y - y) < 50) return false;
+            
             return true;
         }
 
@@ -770,46 +696,13 @@
         }
 
         function draw() {
-            ctx.fillStyle = '#010103'; ctx.fillRect(0,0,canvas.width, canvas.height);
-            
-            ctx.fillStyle = '#fff';
-            stars.forEach(s => {
-                ctx.globalAlpha = 0.3 + Math.sin(Date.now() * s.blink) * 0.5;
-                ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
-            });
-            ctx.globalAlpha = 1.0;
-
-            const rockImg = images['rock'];
-            decorations.forEach(d => {
-                if(d.type === 'rock' && rockImg) {
-                     const s = 90 * d.s; ctx.drawImage(rockImg, d.x - s/2, d.y - s/2, s, s);
-                } else {
-                     ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.ellipse(d.x, d.y, 40*d.s, 25*d.s, 0, 0, Math.PI*2); ctx.fill();
-                }
-            });
-            
-            let pathColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
-            
-            ctx.shadowBlur = 30; ctx.shadowColor = pathColor;
-            ctx.beginPath(); ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
-            for(let i=1; i<pathPoints.length; i++) ctx.lineTo(pathPoints[i].x, pathPoints[i].y);
-            ctx.lineWidth = 80; ctx.strokeStyle = 'rgba(2, 10, 30, 0.8)'; ctx.stroke();
-            ctx.lineWidth = 12; ctx.strokeStyle = pathColor; ctx.setLineDash([30, 20]); ctx.lineDashOffset = -Date.now() / 8; ctx.stroke();
-            ctx.setLineDash([]); ctx.shadowBlur = 0;
+            // Arka planı temizle (CSS'den gelen resim görünür kalır)
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             bonuses.forEach(b => b.draw());
 
-            const baseImg = images['base'];
-            if(baseImg) {
-                const s = 200; ctx.shadowBlur = 50; ctx.shadowColor = pathColor;
-                ctx.drawImage(baseImg, basePos.x - s/2, basePos.y - s/2, s, s); ctx.shadowBlur = 0;
-            } else {
-                ctx.fillStyle = pathColor; ctx.beginPath(); ctx.arc(basePos.x, basePos.y, 50, 0, Math.PI*2); ctx.fill();
-            }
-
             towers.forEach(t => t.draw());
             enemies.forEach(e => e.draw());
-            meteors.forEach(m => m.draw());
             
             projectiles.forEach(p => {
                 if(p.type === 'laser' || p.type === 'sniper') {
@@ -818,18 +711,18 @@
                     const dist = Math.hypot(p.target.x - p.x, p.target.y - p.y);
                     ctx.translate(p.x, p.y); ctx.rotate(angle + Math.PI/2);
                     const beamImg = images['beam'];
-                    if(beamImg && p.type !== 'sniper') { ctx.drawImage(beamImg, -30, 0, 60, -dist); } 
+                    if(beamImg && p.type !== 'sniper') { ctx.drawImage(beamImg, -20, 0, 40, -dist); } 
                     else { 
                         ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0, -dist); 
-                        ctx.lineWidth = p.type === 'sniper' ? 2 : 8; 
-                        ctx.strokeStyle = p.type === 'sniper' ? '#0f0' : pathColor; 
-                        ctx.shadowBlur = 20; ctx.shadowColor = ctx.strokeStyle; ctx.stroke(); 
+                        ctx.lineWidth = p.type === 'sniper' ? 2 : 6; 
+                        ctx.strokeStyle = p.type === 'sniper' ? '#0f0' : '#d0f'; 
+                        ctx.shadowBlur = 15; ctx.shadowColor = ctx.strokeStyle; ctx.stroke(); 
                     }
                     ctx.restore();
                 } else {
-                    ctx.fillStyle = p.type === 'missile' ? '#ff4444' : pathColor;
-                    ctx.shadowBlur = 20; ctx.shadowColor = ctx.fillStyle;
-                    ctx.beginPath(); ctx.arc(p.x, p.y, 10, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+                    ctx.fillStyle = p.type === 'missile' ? '#ff4444' : '#00f3ff';
+                    ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 8, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
                 }
             });
             particles.forEach(p => p.draw());
