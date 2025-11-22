@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Farcaster Space Defense</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Farcaster SDK -->
+    <!-- FARCASTER SDK -->
     <script type="module">
         import sdk from 'https://esm.sh/@farcaster/frame-sdk';
         window.onload = () => {
@@ -34,7 +34,7 @@
         
         #gameContainer {
             flex: 1; position: relative; width: 100%; height: 100%; margin: 0 auto; overflow: hidden;
-            /* Neon Yol Görseli */
+            /* Neon Yol Görseli Arka Plan Olarak Ayarlandı */
             background-image: url('https://raw.githubusercontent.com/thecompetent/tower-defense-oyunum-farcaster/main/image_7a05f5.png');
             background-size: 100% 100%;
             background-position: center;
@@ -334,14 +334,14 @@
 
             // Neon yol resmine göre TAM kooradinatlar (Oran olarak)
             pathPoints.push({x: w * 0.28, y: 0});         // 1. Giriş (Yukarıdan)
-            pathPoints.push({x: w * 0.28, y: h * 0.20});  // 2. İlk Viraj (Aşağı in)
-            pathPoints.push({x: w * 0.66, y: h * 0.20});  // 3. Sağa Git
-            pathPoints.push({x: w * 0.66, y: h * 0.47});  // 4. Aşağı İn
-            pathPoints.push({x: w * 0.33, y: h * 0.47});  // 5. Sola Git
-            pathPoints.push({x: w * 0.33, y: h * 0.73});  // 6. Aşağı İn
-            pathPoints.push({x: w * 0.50, y: h * 0.73});  // 7. Sağa Git (Üsse)
+            pathPoints.push({x: w * 0.28, y: h * 0.22});  // 2. İlk Viraj (Aşağı in)
+            pathPoints.push({x: w * 0.65, y: h * 0.22});  // 3. Sağa Git
+            pathPoints.push({x: w * 0.65, y: h * 0.48});  // 4. Aşağı İn
+            pathPoints.push({x: w * 0.32, y: h * 0.48});  // 5. Sola Git
+            pathPoints.push({x: w * 0.32, y: h * 0.72});  // 6. Aşağı İn
+            pathPoints.push({x: w * 0.50, y: h * 0.72});  // 7. Sağa Git (Üsse)
 
-            basePos = { x: w * 0.50, y: h * 0.82 }; // Üs (Aşağıda ortada, mavi yuvarlak)
+            basePos = { x: w * 0.50, y: h * 0.85 }; // Üs (Aşağıda ortada, mavi yuvarlak)
         }
 
         function updateTheme() {
@@ -584,10 +584,12 @@
         }
 
         function initGame() { resize(); document.getElementById('startScreen').style.display = 'none'; document.getElementById('gameOverScreen').style.display = 'none'; resetVars(); gameState = 'playing'; loop(); }
-        function resetVars() { gold = 200; lives = 20; wave = 1; towers = []; enemies = []; projectiles = []; particles = []; bonuses = []; startWave(); }
+        function resetVars() { gold = 200; lives = 20; wave = 1; towers = []; enemies = []; projectiles = []; particles = []; meteors = []; bonuses = []; startWave(); }
         function resetGame() { initGame(); }
         function startWave() { 
-            toSpawn = 8 + Math.floor(wave * 2); 
+            // Düşman sayısını artırdık
+            toSpawn = 10 + Math.floor(wave * 2); 
+            // Saldırı hızı
             spawnRate = Math.max(20, 60 - wave*2);
             updateTheme(); 
         }
